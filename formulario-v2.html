@@ -132,7 +132,7 @@
     <header class="sticky top-0 z-50 border-b border-white/[0.06]" style="background: rgba(12,12,20,0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);">
         <div class="max-w-4xl mx-auto px-6 py-3.5 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <svg class="w-9 h-9" viewBox="15 20 200 222" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd">
+                <svg class="w-9 h-9" viewBox="10 15 210 230" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd">
                     <path fill="#e8772e" fill-rule="nonzero" d="M45.47 56.98l59.22 -34.19 19.74 11.4 -59.22 34.19 -19.74 -11.4zm78.96 45.58l-39.48 -22.79 78.95 -45.59 -59.22 -34.19 -98.7 56.98 98.7 56.98 19.74 -11.4z"/>
                     <path fill="#e8772e" fill-rule="nonzero" d="M19.74 169.95l0.01 -68.38 51.05 29.48 8.17 14.15 -0.01 49.51c0,0 -8.18,4.71 -8.17,4.72l-51.05 -29.47zm78.95 45.59l0.01 -68.38c0,0 -19.72,-34.18 -19.73,-34.19l-78.95 -45.6 -0.01 113.97c0,0 78.94,45.59 78.95,45.59l19.74 -11.39z"/>
                     <polygon fill="#e8772e" fill-rule="nonzero" points="209.38,67.36 197.12,60.85 203.05,57.46 167.31,52.99 171.41,75.59 177.27,72.23 189.64,78.75 189.63,78.75 189.63,114.9 181.46,129.06 138.59,153.81 138.57,153.8 124.84,168.34 120.81,175.25 120.31,176.04 110.68,192.72 110.68,238.31 130.42,226.91 130.42,190.76 138.59,176.61 181.46,151.85 181.47,151.87 181.53,151.78 199.51,130.04 199.51,130.04 209.38,112.94"/>
@@ -794,30 +794,15 @@
                     <div class="space-y-6">
                         <div>
                             <label class="block text-[13px] font-medium text-white/50 mb-3">Canais de atendimento desejados <span class="text-primary">*</span></label>
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
                                     <input type="checkbox" name="canais[]" value="whatsapp" class="checkbox-custom w-4 h-4 rounded-md"> <span>WhatsApp</span>
-                                </label>
-                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="canais[]" value="site" class="checkbox-custom w-4 h-4 rounded-md"> <span>Site</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
                                     <input type="checkbox" name="canais[]" value="instagram" class="checkbox-custom w-4 h-4 rounded-md"> <span>Instagram</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
                                     <input type="checkbox" name="canais[]" value="facebook" class="checkbox-custom w-4 h-4 rounded-md"> <span>Facebook</span>
-                                </label>
-                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="canais[]" value="telegram" class="checkbox-custom w-4 h-4 rounded-md"> <span>Telegram</span>
-                                </label>
-                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="canais[]" value="email" class="checkbox-custom w-4 h-4 rounded-md"> <span>E-mail</span>
-                                </label>
-                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="canais[]" value="telefone" class="checkbox-custom w-4 h-4 rounded-md"> <span>Telefone (voz)</span>
-                                </label>
-                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="canais[]" value="marketplace" class="checkbox-custom w-4 h-4 rounded-md"> <span>Marketplace</span>
                                 </label>
                             </div>
                         </div>
@@ -830,12 +815,16 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
                                 <label class="block text-[13px] font-medium text-white/50 mb-1.5">Possui APIs ou webhooks?</label>
-                                <select name="possui_apis" class="input-field w-full rounded-xl px-4 py-3 text-white">
+                                <select name="possui_apis" class="input-field w-full rounded-xl px-4 py-3 text-white" onchange="toggleApiLink(this)">
                                     <option value="">Selecione...</option>
                                     <option value="sim">Sim</option>
                                     <option value="nao">Não</option>
                                     <option value="nao_sei">Não sei</option>
                                 </select>
+                                <div id="apiLinkContainer" class="mt-3 hidden">
+                                    <label class="block text-[13px] font-medium text-white/50 mb-1.5">Link da documentação da API</label>
+                                    <input type="url" name="api_doc_link" class="input-field w-full rounded-xl px-4 py-3 text-white" placeholder="https://docs.exemplo.com/api">
+                                </div>
                             </div>
                             <div>
                                 <label class="block text-[13px] font-medium text-white/50 mb-1.5">Possui Business Manager (Meta)?</label>
@@ -1497,6 +1486,19 @@
         }
 
         // ==========================================
+        // CONDITIONAL FIELDS
+        // ==========================================
+        function toggleApiLink(select) {
+            const container = document.getElementById('apiLinkContainer');
+            if (select.value === 'sim') {
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+                container.querySelector('input').value = '';
+            }
+        }
+
+        // ==========================================
         // FORM SUBMISSION
         // ==========================================
         function collectFormData() {
@@ -1645,6 +1647,7 @@
 
                 // Booleans
                 tem_apis:              toBool(data.possui_apis),
+                api_doc_link:          data.api_doc_link || null,
                 tem_dados_sensiveis:   toBool(data.dados_sensiveis),
                 tem_manual_cultura:    toBool(data.manual_cultura),
                 tem_manual_servico:    toBool(data.manual_produtos),
