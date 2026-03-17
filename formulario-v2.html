@@ -93,11 +93,18 @@
         .option-card {
             background: rgba(255,255,255,0.03);
             border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 8px;
+            padding: 8px 10px !important;
             transition: all 0.15s ease;
         }
         .option-card:hover {
             background: rgba(255,255,255,0.06);
             border-color: rgba(255,255,255,0.1);
+        }
+        .option-card input[type="checkbox"],
+        .option-card input[type="radio"] {
+            flex-shrink: 0;
+            border-radius: 50%;
         }
 
         .section-icon {
@@ -125,9 +132,13 @@
     <header class="sticky top-0 z-50 border-b border-white/[0.06]" style="background: rgba(12,12,20,0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);">
         <div class="max-w-4xl mx-auto px-6 py-3.5 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-sm" style="background: #e8772e;">
-                    DPX
-                </div>
+                <svg class="w-9 h-9" viewBox="15 20 200 222" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd">
+                    <path fill="#e8772e" fill-rule="nonzero" d="M45.47 56.98l59.22 -34.19 19.74 11.4 -59.22 34.19 -19.74 -11.4zm78.96 45.58l-39.48 -22.79 78.95 -45.59 -59.22 -34.19 -98.7 56.98 98.7 56.98 19.74 -11.4z"/>
+                    <path fill="#e8772e" fill-rule="nonzero" d="M19.74 169.95l0.01 -68.38 51.05 29.48 8.17 14.15 -0.01 49.51c0,0 -8.18,4.71 -8.17,4.72l-51.05 -29.47zm78.95 45.59l0.01 -68.38c0,0 -19.72,-34.18 -19.73,-34.19l-78.95 -45.6 -0.01 113.97c0,0 78.94,45.59 78.95,45.59l19.74 -11.39z"/>
+                    <polygon fill="#e8772e" fill-rule="nonzero" points="209.38,67.36 197.12,60.85 203.05,57.46 167.31,52.99 171.41,75.59 177.27,72.23 189.64,78.75 189.63,78.75 189.63,114.9 181.46,129.06 138.59,153.81 138.57,153.8 124.84,168.34 120.81,175.25 120.31,176.04 110.68,192.72 110.68,238.31 130.42,226.91 130.42,190.76 138.59,176.61 181.46,151.85 181.47,151.87 181.53,151.78 199.51,130.04 199.51,130.04 209.38,112.94"/>
+                    <polygon fill="#e8772e" fill-rule="nonzero" points="122.21,166.12 135.51,152.03 130.42,149.09 130.42,112.94 110.68,124.34 110.68,169.93 117.58,173.92 117.87,173.46"/>
+                    <polygon fill="#e8772e" fill-rule="nonzero" points="184.49,153.6 189.64,156.58 189.64,192.72 209.37,181.33 209.37,135.74 202.53,131.79"/>
+                </svg>
                 <div>
                     <h1 class="text-[15px] font-semibold text-white/90">Implementação de Agente de IA</h1>
                     <p class="text-[11px] text-white/30 font-medium">Agência DPX &bull; v2.0</p>
@@ -266,16 +277,16 @@
                             <label class="block text-[13px] font-medium text-white/50 mb-3">Nível de maturidade digital da empresa <span class="text-primary">*</span></label>
                             <div class="grid grid-cols-1 gap-3">
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="radio" name="maturidade_digital" value="basico" class="radio-custom w-5 h-5" onchange="toggleMaturidade()"> <span>Básico — Usa WhatsApp e planilhas</span>
+                                    <input type="radio" name="maturidade_digital" value="basico" class="radio-custom w-4 h-4" onchange="toggleMaturidade()"> <span>Básico — Usa WhatsApp e planilhas</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="radio" name="maturidade_digital" value="intermediario" class="radio-custom w-5 h-5" onchange="toggleMaturidade()"> <span>Intermediário — Usa CRM, automações simples</span>
+                                    <input type="radio" name="maturidade_digital" value="intermediario" class="radio-custom w-4 h-4" onchange="toggleMaturidade()"> <span>Intermediário — Usa CRM, automações simples</span>
                                 </label>
                                 <div id="maturidade_intermediario_field" class="hidden ml-8">
                                     <input type="text" name="maturidade_ferramentas_intermediario" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Quais ferramentas usa? (Ex: RD Station, Pipedrive, Mailchimp...)">
                                 </div>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="radio" name="maturidade_digital" value="avancado" class="radio-custom w-5 h-5" onchange="toggleMaturidade()"> <span>Avançado — Integrações, APIs, sistemas conectados</span>
+                                    <input type="radio" name="maturidade_digital" value="avancado" class="radio-custom w-4 h-4" onchange="toggleMaturidade()"> <span>Avançado — Integrações, APIs, sistemas conectados</span>
                                 </label>
                                 <div id="maturidade_avancado_field" class="hidden ml-8">
                                     <input type="text" name="maturidade_ferramentas_avancado" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Quais sistemas e integrações? (Ex: HubSpot + Stripe + ERP...)">
@@ -307,31 +318,31 @@
                             <label class="block text-[13px] font-medium text-white/50 mb-3">Qual o maior problema que a IA vai resolver hoje? <span class="text-primary">*</span></label>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="dor_principal[]" value="demora_atendimento" class="checkbox-custom w-5 h-5 rounded"> <span>Demora no atendimento</span>
+                                    <input type="checkbox" name="dor_principal[]" value="demora_atendimento" class="checkbox-custom w-4 h-4 rounded-md"> <span>Demora no atendimento</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="dor_principal[]" value="alto_custo" class="checkbox-custom w-5 h-5 rounded"> <span>Alto custo operacional</span>
+                                    <input type="checkbox" name="dor_principal[]" value="alto_custo" class="checkbox-custom w-4 h-4 rounded-md"> <span>Alto custo operacional</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="dor_principal[]" value="perda_leads" class="checkbox-custom w-5 h-5 rounded"> <span>Perda de leads/oportunidades</span>
+                                    <input type="checkbox" name="dor_principal[]" value="perda_leads" class="checkbox-custom w-4 h-4 rounded-md"> <span>Perda de leads/oportunidades</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="dor_principal[]" value="fora_horario" class="checkbox-custom w-5 h-5 rounded"> <span>Falta de atendimento fora do horário</span>
+                                    <input type="checkbox" name="dor_principal[]" value="fora_horario" class="checkbox-custom w-4 h-4 rounded-md"> <span>Falta de atendimento fora do horário</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="dor_principal[]" value="equipe_sobrecarregada" class="checkbox-custom w-5 h-5 rounded"> <span>Equipe sobrecarregada</span>
+                                    <input type="checkbox" name="dor_principal[]" value="equipe_sobrecarregada" class="checkbox-custom w-4 h-4 rounded-md"> <span>Equipe sobrecarregada</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="dor_principal[]" value="inconsistencia" class="checkbox-custom w-5 h-5 rounded"> <span>Inconsistência nas respostas</span>
+                                    <input type="checkbox" name="dor_principal[]" value="inconsistencia" class="checkbox-custom w-4 h-4 rounded-md"> <span>Inconsistência nas respostas</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="dor_principal[]" value="dificuldade_escalar" class="checkbox-custom w-5 h-5 rounded"> <span>Dificuldade em escalar</span>
+                                    <input type="checkbox" name="dor_principal[]" value="dificuldade_escalar" class="checkbox-custom w-4 h-4 rounded-md"> <span>Dificuldade em escalar</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="dor_principal[]" value="falta_dados" class="checkbox-custom w-5 h-5 rounded"> <span>Falta de dados/métricas</span>
+                                    <input type="checkbox" name="dor_principal[]" value="falta_dados" class="checkbox-custom w-4 h-4 rounded-md"> <span>Falta de dados/métricas</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer md:col-span-2">
-                                    <input type="checkbox" name="dor_principal[]" value="outro" class="checkbox-custom w-5 h-5 rounded" onchange="document.getElementById('dor_outro_field').classList.toggle('hidden', !this.checked)"> <span>Outro</span>
+                                    <input type="checkbox" name="dor_principal[]" value="outro" class="checkbox-custom w-4 h-4 rounded-md" onchange="document.getElementById('dor_outro_field').classList.toggle('hidden', !this.checked)"> <span>Outro</span>
                                 </label>
                             </div>
                             <div id="dor_outro_field" class="hidden mt-3">
@@ -349,28 +360,28 @@
                             <label class="block text-[13px] font-medium text-white/50 mb-3">Áreas da empresa que o agente deve atender <span class="text-primary">*</span></label>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="areas[]" value="comercial" class="checkbox-custom w-5 h-5 rounded"> <span>Comercial/Vendas</span>
+                                    <input type="checkbox" name="areas[]" value="comercial" class="checkbox-custom w-4 h-4 rounded-md"> <span>Comercial/Vendas</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="areas[]" value="atendimento" class="checkbox-custom w-5 h-5 rounded"> <span>Atendimento ao cliente</span>
+                                    <input type="checkbox" name="areas[]" value="atendimento" class="checkbox-custom w-4 h-4 rounded-md"> <span>Atendimento ao cliente</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="areas[]" value="processos" class="checkbox-custom w-5 h-5 rounded"> <span>Processos internos</span>
+                                    <input type="checkbox" name="areas[]" value="processos" class="checkbox-custom w-4 h-4 rounded-md"> <span>Processos internos</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="areas[]" value="marketing" class="checkbox-custom w-5 h-5 rounded"> <span>Marketing</span>
+                                    <input type="checkbox" name="areas[]" value="marketing" class="checkbox-custom w-4 h-4 rounded-md"> <span>Marketing</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="areas[]" value="rh" class="checkbox-custom w-5 h-5 rounded"> <span>Recursos Humanos</span>
+                                    <input type="checkbox" name="areas[]" value="rh" class="checkbox-custom w-4 h-4 rounded-md"> <span>Recursos Humanos</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="areas[]" value="financeiro" class="checkbox-custom w-5 h-5 rounded"> <span>Financeiro/Cobrança</span>
+                                    <input type="checkbox" name="areas[]" value="financeiro" class="checkbox-custom w-4 h-4 rounded-md"> <span>Financeiro/Cobrança</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="areas[]" value="suporte" class="checkbox-custom w-5 h-5 rounded"> <span>Suporte técnico</span>
+                                    <input type="checkbox" name="areas[]" value="suporte" class="checkbox-custom w-4 h-4 rounded-md"> <span>Suporte técnico</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="areas[]" value="agendamento" class="checkbox-custom w-5 h-5 rounded"> <span>Agendamento</span>
+                                    <input type="checkbox" name="areas[]" value="agendamento" class="checkbox-custom w-4 h-4 rounded-md"> <span>Agendamento</span>
                                 </label>
                             </div>
                         </div>
@@ -380,31 +391,31 @@
                             <label class="block text-[13px] font-medium text-white/50 mb-3">O que você quer que o agente faça na prática? <span class="text-primary">*</span></label>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="acoes_praticas[]" value="responder_clientes" class="checkbox-custom w-5 h-5 rounded"> <span>Responder clientes automaticamente</span>
+                                    <input type="checkbox" name="acoes_praticas[]" value="responder_clientes" class="checkbox-custom w-4 h-4 rounded-md"> <span>Responder clientes automaticamente</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="acoes_praticas[]" value="qualificar_leads" class="checkbox-custom w-5 h-5 rounded"> <span>Qualificar leads</span>
+                                    <input type="checkbox" name="acoes_praticas[]" value="qualificar_leads" class="checkbox-custom w-4 h-4 rounded-md"> <span>Qualificar leads</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="acoes_praticas[]" value="agendar_reunioes" class="checkbox-custom w-5 h-5 rounded"> <span>Agendar reuniões</span>
+                                    <input type="checkbox" name="acoes_praticas[]" value="agendar_reunioes" class="checkbox-custom w-4 h-4 rounded-md"> <span>Agendar reuniões</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="acoes_praticas[]" value="enviar_propostas" class="checkbox-custom w-5 h-5 rounded"> <span>Enviar propostas</span>
+                                    <input type="checkbox" name="acoes_praticas[]" value="enviar_propostas" class="checkbox-custom w-4 h-4 rounded-md"> <span>Enviar propostas</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="acoes_praticas[]" value="consultar_dados" class="checkbox-custom w-5 h-5 rounded"> <span>Consultar dados internos</span>
+                                    <input type="checkbox" name="acoes_praticas[]" value="consultar_dados" class="checkbox-custom w-4 h-4 rounded-md"> <span>Consultar dados internos</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="acoes_praticas[]" value="gerar_relatorios" class="checkbox-custom w-5 h-5 rounded"> <span>Gerar relatórios</span>
+                                    <input type="checkbox" name="acoes_praticas[]" value="gerar_relatorios" class="checkbox-custom w-4 h-4 rounded-md"> <span>Gerar relatórios</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="acoes_praticas[]" value="automatizar_processos" class="checkbox-custom w-5 h-5 rounded"> <span>Automatizar processos internos</span>
+                                    <input type="checkbox" name="acoes_praticas[]" value="automatizar_processos" class="checkbox-custom w-4 h-4 rounded-md"> <span>Automatizar processos internos</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="acoes_praticas[]" value="cobrar_followup" class="checkbox-custom w-5 h-5 rounded"> <span>Cobrar clientes / follow-up</span>
+                                    <input type="checkbox" name="acoes_praticas[]" value="cobrar_followup" class="checkbox-custom w-4 h-4 rounded-md"> <span>Cobrar clientes / follow-up</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer md:col-span-2">
-                                    <input type="checkbox" name="acoes_praticas[]" value="outro" class="checkbox-custom w-5 h-5 rounded" onchange="document.getElementById('acoes_outro_field').classList.toggle('hidden', !this.checked)"> <span>Outro</span>
+                                    <input type="checkbox" name="acoes_praticas[]" value="outro" class="checkbox-custom w-4 h-4 rounded-md" onchange="document.getElementById('acoes_outro_field').classList.toggle('hidden', !this.checked)"> <span>Outro</span>
                                 </label>
                             </div>
                             <div id="acoes_outro_field" class="hidden mt-3">
@@ -417,22 +428,22 @@
                             <label class="block text-[13px] font-medium text-white/50 mb-3">O que você espera do seu agente? <span class="text-primary">*</span></label>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="expectativas[]" value="automatizar_tudo" class="checkbox-custom w-5 h-5 rounded"> <span>Automatizar tudo (substituir humanos)</span>
+                                    <input type="checkbox" name="expectativas[]" value="automatizar_tudo" class="checkbox-custom w-4 h-4 rounded-md"> <span>Automatizar tudo (substituir humanos)</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="expectativas[]" value="ajudar_time" class="checkbox-custom w-5 h-5 rounded"> <span>Ajudar o time (complementar humanos)</span>
+                                    <input type="checkbox" name="expectativas[]" value="ajudar_time" class="checkbox-custom w-4 h-4 rounded-md"> <span>Ajudar o time (complementar humanos)</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="expectativas[]" value="testar_inovacao" class="checkbox-custom w-5 h-5 rounded"> <span>Testar inovação (projeto piloto)</span>
+                                    <input type="checkbox" name="expectativas[]" value="testar_inovacao" class="checkbox-custom w-4 h-4 rounded-md"> <span>Testar inovação (projeto piloto)</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="expectativas[]" value="reduzir_custos" class="checkbox-custom w-5 h-5 rounded"> <span>Reduzir custos operacionais</span>
+                                    <input type="checkbox" name="expectativas[]" value="reduzir_custos" class="checkbox-custom w-4 h-4 rounded-md"> <span>Reduzir custos operacionais</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="expectativas[]" value="melhorar_experiencia" class="checkbox-custom w-5 h-5 rounded"> <span>Melhorar experiência do cliente</span>
+                                    <input type="checkbox" name="expectativas[]" value="melhorar_experiencia" class="checkbox-custom w-4 h-4 rounded-md"> <span>Melhorar experiência do cliente</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="expectativas[]" value="escalar_sem_contratar" class="checkbox-custom w-5 h-5 rounded"> <span>Escalar sem contratar</span>
+                                    <input type="checkbox" name="expectativas[]" value="escalar_sem_contratar" class="checkbox-custom w-4 h-4 rounded-md"> <span>Escalar sem contratar</span>
                                 </label>
                             </div>
                         </div>
@@ -465,22 +476,22 @@
                             <label class="block text-[13px] font-medium text-white/50 mb-3">Tom de comunicação desejado <span class="text-primary">*</span></label>
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="radio" name="tom_comunicacao" value="formal" class="radio-custom w-5 h-5"> <span>Formal e profissional</span>
+                                    <input type="radio" name="tom_comunicacao" value="formal" class="radio-custom w-4 h-4"> <span>Formal e profissional</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="radio" name="tom_comunicacao" value="amigavel" class="radio-custom w-5 h-5"> <span>Amigável e acolhedor</span>
+                                    <input type="radio" name="tom_comunicacao" value="amigavel" class="radio-custom w-4 h-4"> <span>Amigável e acolhedor</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="radio" name="tom_comunicacao" value="casual" class="radio-custom w-5 h-5"> <span>Casual e descontraído</span>
+                                    <input type="radio" name="tom_comunicacao" value="casual" class="radio-custom w-4 h-4"> <span>Casual e descontraído</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="radio" name="tom_comunicacao" value="tecnico" class="radio-custom w-5 h-5"> <span>Técnico e especializado</span>
+                                    <input type="radio" name="tom_comunicacao" value="tecnico" class="radio-custom w-4 h-4"> <span>Técnico e especializado</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="radio" name="tom_comunicacao" value="consultivo" class="radio-custom w-5 h-5"> <span>Consultivo e orientador</span>
+                                    <input type="radio" name="tom_comunicacao" value="consultivo" class="radio-custom w-4 h-4"> <span>Consultivo e orientador</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="radio" name="tom_comunicacao" value="vendedor" class="radio-custom w-5 h-5"> <span>Persuasivo e vendedor</span>
+                                    <input type="radio" name="tom_comunicacao" value="vendedor" class="radio-custom w-4 h-4"> <span>Persuasivo e vendedor</span>
                                 </label>
                             </div>
                         </div>
@@ -494,13 +505,13 @@
                             <label class="block text-[13px] font-medium text-white/50 mb-1.5">O agente deve usar emojis?</label>
                             <div class="flex gap-4">
                                 <label class="flex items-center gap-2 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="radio" name="usa_emojis" value="sim" class="radio-custom w-5 h-5"> <span>Sim</span>
+                                    <input type="radio" name="usa_emojis" value="sim" class="radio-custom w-4 h-4"> <span>Sim</span>
                                 </label>
                                 <label class="flex items-center gap-2 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="radio" name="usa_emojis" value="moderado" class="radio-custom w-5 h-5"> <span>Moderadamente</span>
+                                    <input type="radio" name="usa_emojis" value="moderado" class="radio-custom w-4 h-4"> <span>Moderadamente</span>
                                 </label>
                                 <label class="flex items-center gap-2 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="radio" name="usa_emojis" value="nao" class="radio-custom w-5 h-5"> <span>Não</span>
+                                    <input type="radio" name="usa_emojis" value="nao" class="radio-custom w-4 h-4"> <span>Não</span>
                                 </label>
                             </div>
                         </div>
@@ -551,7 +562,18 @@
                     <div class="space-y-6">
                         <div>
                             <label class="block text-[13px] font-medium text-white/50 mb-1.5">Horário de funcionamento <span class="text-primary">*</span></label>
-                            <input type="text" name="horario_funcionamento" required class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Ex: Seg-Sex 8h às 18h, Sáb 8h às 12h">
+                            <select name="horario_funcionamento" required class="input-field w-full rounded-lg px-4 py-2.5 text-white" onchange="document.getElementById('horario_outro_field').classList.toggle('hidden', this.value !== 'outro')">
+                                <option value="">Selecione...</option>
+                                <option value="24h_7dias">24 horas, 7 dias por semana</option>
+                                <option value="seg_sex_8_18">Segunda a Sexta, 8h às 18h</option>
+                                <option value="seg_sex_8_20">Segunda a Sexta, 8h às 20h</option>
+                                <option value="seg_sab_8_18">Segunda a Sábado, 8h às 18h</option>
+                                <option value="seg_sab_8_13">Segunda a Sábado, 8h às 13h</option>
+                                <option value="comercial_9_17">Horário comercial (9h às 17h)</option>
+                                <option value="noturno">Horário noturno (18h às 23h)</option>
+                                <option value="outro">Outro horário</option>
+                            </select>
+                            <input type="text" id="horario_outro_field" name="horario_funcionamento_outro" class="input-field w-full rounded-lg px-4 py-2.5 mt-2 hidden" placeholder="Descreva o horário...">
                         </div>
 
                         <div>
@@ -721,22 +743,22 @@
                             <label class="block text-[13px] font-medium text-white/50 mb-3">Quando escalar para um humano? <span class="text-primary">*</span></label>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="escalacao[]" value="reclamacao" class="checkbox-custom w-5 h-5 rounded"> <span>Reclamação grave</span>
+                                    <input type="checkbox" name="escalacao[]" value="reclamacao" class="checkbox-custom w-4 h-4 rounded-md"> <span>Reclamação grave</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="escalacao[]" value="negociacao" class="checkbox-custom w-5 h-5 rounded"> <span>Negociação de valores</span>
+                                    <input type="checkbox" name="escalacao[]" value="negociacao" class="checkbox-custom w-4 h-4 rounded-md"> <span>Negociação de valores</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="escalacao[]" value="tecnico" class="checkbox-custom w-5 h-5 rounded"> <span>Problema técnico complexo</span>
+                                    <input type="checkbox" name="escalacao[]" value="tecnico" class="checkbox-custom w-4 h-4 rounded-md"> <span>Problema técnico complexo</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="escalacao[]" value="juridico" class="checkbox-custom w-5 h-5 rounded"> <span>Questão jurídica</span>
+                                    <input type="checkbox" name="escalacao[]" value="juridico" class="checkbox-custom w-4 h-4 rounded-md"> <span>Questão jurídica</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="escalacao[]" value="insatisfeito" class="checkbox-custom w-5 h-5 rounded"> <span>Cliente muito insatisfeito</span>
+                                    <input type="checkbox" name="escalacao[]" value="insatisfeito" class="checkbox-custom w-4 h-4 rounded-md"> <span>Cliente muito insatisfeito</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="escalacao[]" value="venda_grande" class="checkbox-custom w-5 h-5 rounded"> <span>Venda de alto valor</span>
+                                    <input type="checkbox" name="escalacao[]" value="venda_grande" class="checkbox-custom w-4 h-4 rounded-md"> <span>Venda de alto valor</span>
                                 </label>
                             </div>
                         </div>
@@ -774,28 +796,28 @@
                             <label class="block text-[13px] font-medium text-white/50 mb-3">Canais de atendimento desejados <span class="text-primary">*</span></label>
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="canais[]" value="whatsapp" class="checkbox-custom w-5 h-5 rounded"> <span>WhatsApp</span>
+                                    <input type="checkbox" name="canais[]" value="whatsapp" class="checkbox-custom w-4 h-4 rounded-md"> <span>WhatsApp</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="canais[]" value="site" class="checkbox-custom w-5 h-5 rounded"> <span>Site</span>
+                                    <input type="checkbox" name="canais[]" value="site" class="checkbox-custom w-4 h-4 rounded-md"> <span>Site</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="canais[]" value="instagram" class="checkbox-custom w-5 h-5 rounded"> <span>Instagram</span>
+                                    <input type="checkbox" name="canais[]" value="instagram" class="checkbox-custom w-4 h-4 rounded-md"> <span>Instagram</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="canais[]" value="facebook" class="checkbox-custom w-5 h-5 rounded"> <span>Facebook</span>
+                                    <input type="checkbox" name="canais[]" value="facebook" class="checkbox-custom w-4 h-4 rounded-md"> <span>Facebook</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="canais[]" value="telegram" class="checkbox-custom w-5 h-5 rounded"> <span>Telegram</span>
+                                    <input type="checkbox" name="canais[]" value="telegram" class="checkbox-custom w-4 h-4 rounded-md"> <span>Telegram</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="canais[]" value="email" class="checkbox-custom w-5 h-5 rounded"> <span>E-mail</span>
+                                    <input type="checkbox" name="canais[]" value="email" class="checkbox-custom w-4 h-4 rounded-md"> <span>E-mail</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="canais[]" value="telefone" class="checkbox-custom w-5 h-5 rounded"> <span>Telefone (voz)</span>
+                                    <input type="checkbox" name="canais[]" value="telefone" class="checkbox-custom w-4 h-4 rounded-md"> <span>Telefone (voz)</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="canais[]" value="marketplace" class="checkbox-custom w-5 h-5 rounded"> <span>Marketplace</span>
+                                    <input type="checkbox" name="canais[]" value="marketplace" class="checkbox-custom w-4 h-4 rounded-md"> <span>Marketplace</span>
                                 </label>
                             </div>
                         </div>
@@ -833,28 +855,28 @@
                                 <label class="block text-[13px] font-medium text-white/50 mb-3">Tipos de conteúdo já disponíveis</label>
                                 <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                                     <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                        <input type="checkbox" name="conteudo[]" value="faq" class="checkbox-custom w-5 h-5 rounded"> <span>FAQ</span>
+                                        <input type="checkbox" name="conteudo[]" value="faq" class="checkbox-custom w-4 h-4 rounded-md"> <span>FAQ</span>
                                     </label>
                                     <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                        <input type="checkbox" name="conteudo[]" value="manuais" class="checkbox-custom w-5 h-5 rounded"> <span>Manuais</span>
+                                        <input type="checkbox" name="conteudo[]" value="manuais" class="checkbox-custom w-4 h-4 rounded-md"> <span>Manuais</span>
                                     </label>
                                     <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                        <input type="checkbox" name="conteudo[]" value="scripts" class="checkbox-custom w-5 h-5 rounded"> <span>Scripts</span>
+                                        <input type="checkbox" name="conteudo[]" value="scripts" class="checkbox-custom w-4 h-4 rounded-md"> <span>Scripts</span>
                                     </label>
                                     <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                        <input type="checkbox" name="conteudo[]" value="tickets" class="checkbox-custom w-5 h-5 rounded"> <span>Tickets</span>
+                                        <input type="checkbox" name="conteudo[]" value="tickets" class="checkbox-custom w-4 h-4 rounded-md"> <span>Tickets</span>
                                     </label>
                                     <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                        <input type="checkbox" name="conteudo[]" value="artigos" class="checkbox-custom w-5 h-5 rounded"> <span>Artigos/Blog</span>
+                                        <input type="checkbox" name="conteudo[]" value="artigos" class="checkbox-custom w-4 h-4 rounded-md"> <span>Artigos/Blog</span>
                                     </label>
                                     <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                        <input type="checkbox" name="conteudo[]" value="videos" class="checkbox-custom w-5 h-5 rounded"> <span>Vídeos</span>
+                                        <input type="checkbox" name="conteudo[]" value="videos" class="checkbox-custom w-4 h-4 rounded-md"> <span>Vídeos</span>
                                     </label>
                                     <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                        <input type="checkbox" name="conteudo[]" value="planilhas" class="checkbox-custom w-5 h-5 rounded"> <span>Planilhas</span>
+                                        <input type="checkbox" name="conteudo[]" value="planilhas" class="checkbox-custom w-4 h-4 rounded-md"> <span>Planilhas</span>
                                     </label>
                                     <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                        <input type="checkbox" name="conteudo[]" value="nao_tenho" class="checkbox-custom w-5 h-5 rounded"> <span>Não tenho</span>
+                                        <input type="checkbox" name="conteudo[]" value="nao_tenho" class="checkbox-custom w-4 h-4 rounded-md"> <span>Não tenho</span>
                                     </label>
                                 </div>
                             </div>
@@ -1063,22 +1085,22 @@
                             <label class="block text-[13px] font-medium text-white/50 mb-3">O agente deve</label>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="capacidades[]" value="responder_duvidas" class="checkbox-custom w-5 h-5 rounded"> <span>Responder dúvidas</span>
+                                    <input type="checkbox" name="capacidades[]" value="responder_duvidas" class="checkbox-custom w-4 h-4 rounded-md"> <span>Responder dúvidas</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="capacidades[]" value="executar_acoes" class="checkbox-custom w-5 h-5 rounded"> <span>Executar ações (agendar, consultar, etc.)</span>
+                                    <input type="checkbox" name="capacidades[]" value="executar_acoes" class="checkbox-custom w-4 h-4 rounded-md"> <span>Executar ações (agendar, consultar, etc.)</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="capacidades[]" value="interagir_sistemas" class="checkbox-custom w-5 h-5 rounded"> <span>Interagir com múltiplos sistemas</span>
+                                    <input type="checkbox" name="capacidades[]" value="interagir_sistemas" class="checkbox-custom w-4 h-4 rounded-md"> <span>Interagir com múltiplos sistemas</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="capacidades[]" value="coletar_dados" class="checkbox-custom w-5 h-5 rounded"> <span>Coletar e registrar dados</span>
+                                    <input type="checkbox" name="capacidades[]" value="coletar_dados" class="checkbox-custom w-4 h-4 rounded-md"> <span>Coletar e registrar dados</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="capacidades[]" value="gerar_relatorios" class="checkbox-custom w-5 h-5 rounded"> <span>Gerar relatórios</span>
+                                    <input type="checkbox" name="capacidades[]" value="gerar_relatorios" class="checkbox-custom w-4 h-4 rounded-md"> <span>Gerar relatórios</span>
                                 </label>
                                 <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
-                                    <input type="checkbox" name="capacidades[]" value="enviar_midia" class="checkbox-custom w-5 h-5 rounded"> <span>Enviar imagens/documentos/vídeos</span>
+                                    <input type="checkbox" name="capacidades[]" value="enviar_midia" class="checkbox-custom w-4 h-4 rounded-md"> <span>Enviar imagens/documentos/vídeos</span>
                                 </label>
                             </div>
                         </div>
@@ -1633,6 +1655,9 @@
                 precisa_autonomia_conteudo: toBool(data.autonomia_conteudo),
 
                 // Operação
+                horarios_operacao:   data.horario_funcionamento === 'outro'
+                                        ? (data.horario_funcionamento_outro || null)
+                                        : (data.horario_funcionamento || null),
                 interacoes_mensais:  data.atendimentos_dia   || null,
                 usuarios_simultaneos: data.usuarios_simultaneos || null,
                 horarios_pico:       data.horario_pico       || null,
@@ -1679,7 +1704,7 @@
             } catch (error) {
                 console.error('Erro ao enviar para Supabase:', error);
                 localStorage.setItem('dpx_form_fallback_' + Date.now(), JSON.stringify(payload));
-                alert('Ocorreu um erro ao enviar. Dados salvos localmente. Tente novamente ou contate a equipe DPX.');
+                alert('Erro ao enviar: ' + error.message + '\n\nDados salvos localmente. Tente novamente ou contate a equipe DPX.');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Enviar Formulário';
                 return false;
