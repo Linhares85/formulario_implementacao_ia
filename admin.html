@@ -9,8 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -1002,6 +1001,10 @@
         // PDF EXPORT
         // ==========================================
         function buildPDFForForm(form) {
+            if (!window.jspdf) {
+                alert('Biblioteca PDF não carregou. Recarregue a página e tente novamente.');
+                return null;
+            }
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('p', 'mm', 'a4');
             const d = form.dados || {};
@@ -1175,6 +1178,7 @@
             if (selectedIndex < 0) { alert('Selecione um formulário'); return; }
             const form = formularios[selectedIndex];
             const doc = buildPDFForForm(form);
+            if (!doc) return;
             const safeName = (form.nome_empresa || 'formulario').replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
             doc.save(`formulario_${safeName}.pdf`);
         }
