@@ -476,7 +476,7 @@
             if (supabaseClient) {
                 try {
                     const { data, error } = await supabaseClient
-                        .from('formularios_ia')
+                        .from('Formularios - IA')
                         .select('*')
                         .order('created_at', { ascending: false });
 
@@ -558,7 +558,7 @@
             let synced = 0;
             for (const form of localForms) {
                 try {
-                    const { error } = await supabaseClient.from('formularios_ia').insert({
+                    const { error } = await supabaseClient.from('Formularios - IA').insert({
                         dados: form.dados,
                         nome_empresa: form.nome_empresa,
                         responsavel_nome: form.responsavel_nome,
@@ -892,7 +892,7 @@
 
             if (form.source === 'supabase' && supabaseClient) {
                 const { error } = await supabaseClient
-                    .from('formularios_ia')
+                    .from('Formularios - IA')
                     .delete()
                     .eq('id', form.id);
                 if (error) {
