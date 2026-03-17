@@ -9,6 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -173,11 +175,17 @@
                 </svg>
                 CSV
             </button>
-            <button onclick="exportXLSX()" class="btn-action btn-primary-sm">
+            <button onclick="exportXLSX()" class="btn-action btn-ghost">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
                 XLSX
+            </button>
+            <button onclick="exportPDF()" class="btn-action btn-primary-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                </svg>
+                PDF
             </button>
         </div>
 
@@ -270,6 +278,12 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                     </svg>
                                     Visualizar
+                                </button>
+                                <button onclick="exportSinglePDF()" class="btn-action text-xs btn-primary-sm" title="Baixar PDF completo">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                    </svg>
+                                    PDF
                                 </button>
                                 <button onclick="deleteFormulario()" class="btn-action text-xs bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -902,16 +916,49 @@
         // EXPORT
         // ==========================================
         function getExportData() {
-            return formularios.map(f => ({
-                'Empresa': f.nome_empresa,
-                'Responsável': f.responsavel_nome,
-                'Email': f.responsavel_email,
-                'Data': new Date(f.created_at).toLocaleDateString('pt-BR'),
-                'Fonte': f.source,
-                'Status': f.status,
-                'Score': f.score,
-                'Valor Estimado': f.valor,
-            }));
+            return formularios.map(f => {
+                const d = f.dados || {};
+                const fmt = v => {
+                    if (v === null || v === undefined || v === '') return '';
+                    if (Array.isArray(v)) return v.map(i => typeof i === 'object' ? JSON.stringify(i) : i).join(', ');
+                    if (typeof v === 'object') return JSON.stringify(v);
+                    return String(v);
+                };
+                return {
+                    'Empresa': f.nome_empresa,
+                    'CNPJ': fmt(d.cnpj),
+                    'Segmento': fmt(d.segmento),
+                    'Endereço': fmt(d.endereco),
+                    'Colaboradores': fmt(d.num_colaboradores),
+                    'Faturamento': fmt(d.faturamento),
+                    'Produtos/Serviços': fmt(d.produtos_servicos),
+                    'Público-Alvo': fmt(d.publico_alvo),
+                    'Maturidade Digital': fmt(d.maturidade_digital),
+                    'Dor Principal': fmt(d.dor_principal),
+                    'Áreas Cobertura': fmt(d.areas),
+                    'Ações Práticas': fmt(d.acoes_praticas),
+                    'Canais': fmt(d.canais),
+                    'Integrações': fmt(d.integracoes),
+                    'Tom de Voz': fmt(d.tom_voz),
+                    'Horário Funcionamento': fmt(d.horario_funcionamento),
+                    'Conteúdo Disponível': fmt(d.conteudo),
+                    'Manual Cultura': fmt(d.manual_cultura),
+                    'Manual Produtos': fmt(d.manual_produtos),
+                    'Dados Sensíveis': fmt(d.dados_sensiveis),
+                    'Possui APIs': fmt(d.possui_apis),
+                    'Indicadores': fmt(d.indicadores),
+                    'Segurança': fmt(d.seguranca),
+                    'Responsável': f.responsavel_nome,
+                    'Cargo': fmt(d.responsavel_cargo),
+                    'Email': f.responsavel_email,
+                    'Telefone': fmt(d.responsavel_telefone),
+                    'Data': new Date(f.created_at).toLocaleDateString('pt-BR'),
+                    'Status': f.status,
+                    'Score': f.score,
+                    'Valor Estimado': f.valor,
+                    'Observações': fmt(d.observacoes),
+                };
+            });
         }
 
         function exportCSV() {
@@ -949,6 +996,219 @@
             ];
 
             XLSX.writeFile(wb, 'formularios_dpx.xlsx');
+        }
+
+        // ==========================================
+        // PDF EXPORT
+        // ==========================================
+        function buildPDFForForm(form) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const d = form.dados || {};
+            const pageWidth = doc.internal.pageSize.getWidth();
+            let y = 15;
+
+            const fmt = v => {
+                if (v === null || v === undefined || v === '') return '—';
+                if (Array.isArray(v)) return v.map(i => typeof i === 'object' ? JSON.stringify(i) : i).join(', ');
+                if (typeof v === 'object') return JSON.stringify(v);
+                return String(v);
+            };
+
+            // Header
+            doc.setFillColor(232, 119, 46);
+            doc.rect(0, 0, pageWidth, 28, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(18);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Agência DPX', 14, 13);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.text('Formulário de Implementação de Agente de IA', 14, 20);
+            doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, pageWidth - 14, 20, { align: 'right' });
+            y = 35;
+
+            // Empresa title
+            doc.setTextColor(30, 30, 46);
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'bold');
+            doc.text(form.nome_empresa || 'Sem nome', 14, y);
+            y += 4;
+
+            const scoreLabel = form.score <= 30 ? 'Simples' : form.score <= 60 ? 'Moderado' : form.score <= 80 ? 'Complexo' : 'Enterprise';
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(100, 100, 120);
+            doc.text(`Score: ${form.score}/100 (${scoreLabel})  |  Valor Estimado: R$ ${form.valor?.toLocaleString('pt-BR') || '—'}  |  Status: ${form.status || 'novo'}`, 14, y + 4);
+            y += 12;
+
+            // Sections
+            const sections = [
+                { title: 'Informações da Empresa', rows: [
+                    ['Nome da Empresa', fmt(d.nome_empresa)],
+                    ['CNPJ', fmt(d.cnpj)],
+                    ['Segmento', fmt(d.segmento)],
+                    ['Endereço', fmt(d.endereco)],
+                    ['Colaboradores', fmt(d.num_colaboradores)],
+                    ['Faturamento Mensal', fmt(d.faturamento)],
+                    ['Produtos/Serviços', fmt(d.produtos_servicos)],
+                    ['Público-Alvo', fmt(d.publico_alvo)],
+                ]},
+                { title: 'Diagnóstico e Objetivos', rows: [
+                    ['Maturidade Digital', fmt(d.maturidade_digital)],
+                    ['Ferramentas Atuais', fmt(d.maturidade_ferramentas)],
+                    ['Dor Principal', fmt(d.dor_principal)],
+                    ['Áreas de Cobertura', fmt(d.areas)],
+                    ['Ações Práticas', fmt(d.acoes_praticas)],
+                    ['Indicadores de Sucesso', fmt(d.indicadores)],
+                ]},
+                { title: 'Personalidade e Comunicação', rows: [
+                    ['Tom de Voz', fmt(d.tom_voz)],
+                    ['Nome do Agente', fmt(d.nome_agente)],
+                    ['Usar Emojis', fmt(d.usar_emojis)],
+                    ['Idioma', fmt(d.idioma)],
+                    ['Multilíngue', fmt(d.multilingue)],
+                    ['Processar Voz', fmt(d.processar_voz)],
+                ]},
+                { title: 'Regras de Negócio', rows: [
+                    ['Horário Funcionamento', fmt(d.horario_funcionamento)],
+                    ['Formas de Pagamento', fmt(d.formas_pagamento)],
+                    ['Política de Preços', fmt(d.politica_precos)],
+                    ['Garantia/Devolução', fmt(d.garantia_devolucao)],
+                    ['Prazo de Entrega', fmt(d.prazo_entrega)],
+                    ['Restrições', fmt(d.restricoes)],
+                ]},
+                { title: 'Canais e Integrações', rows: [
+                    ['Canais Desejados', fmt(d.canais)],
+                    ['Integrações', fmt(d.integracoes)],
+                    ['Possui APIs', fmt(d.possui_apis)],
+                    ['Limitações Técnicas', fmt(d.limitacoes_tecnicas)],
+                ]},
+                { title: 'Conteúdo e Dados', rows: [
+                    ['Conteúdo Disponível', fmt(d.conteudo)],
+                    ['Armazenamento Dados', fmt(d.armazenamento_dados)],
+                    ['Formato Dados', fmt(d.formato_dados)],
+                    ['Dados Sensíveis', fmt(d.dados_sensiveis)],
+                    ['Manual de Cultura', fmt(d.manual_cultura)],
+                    ['Manual Produtos/Serviços', fmt(d.manual_produtos)],
+                ]},
+                { title: 'Volume e Operação', rows: [
+                    ['Atendimentos/Dia', fmt(d.atendimentos_dia)],
+                    ['Usuários Simultâneos', fmt(d.usuarios_simultaneos)],
+                    ['Horário de Pico', fmt(d.horario_pico)],
+                    ['Atendentes Humanos', fmt(d.atendentes_humanos)],
+                    ['Escalabilidade', fmt(d.escalabilidade)],
+                ]},
+                { title: 'Segurança e Requisitos', rows: [
+                    ['Requisitos de Segurança', fmt(d.seguranca)],
+                    ['Nível de Customização', fmt(d.nivel_customizacao)],
+                    ['Frequência Relatórios', fmt(d.frequencia_relatorios)],
+                    ['Identidade Visual', fmt(d.identidade_visual)],
+                    ['Autonomia Conteúdo', fmt(d.autonomia_conteudo)],
+                    ['Gerente de Negócio', fmt(d.gerente_negocio)],
+                ]},
+                { title: 'FAQ e Cenários', rows: [
+                    ['Perguntas Frequentes', fmt(d.faq)],
+                    ['Cenários de Uso', fmt(d.cenarios)],
+                    ['Objeções', fmt(d.objecoes)],
+                    ['Glossário', fmt(d.glossario)],
+                ]},
+                { title: 'Contato do Responsável', rows: [
+                    ['Nome', fmt(d.responsavel_nome)],
+                    ['Cargo', fmt(d.responsavel_cargo)],
+                    ['E-mail', fmt(d.responsavel_email)],
+                    ['Telefone/WhatsApp', fmt(d.responsavel_telefone)],
+                ]},
+                { title: 'Observações Finais', rows: [
+                    ['Expectativas', fmt(d.expectativas)],
+                    ['Observações', fmt(d.observacoes)],
+                ]},
+            ];
+
+            sections.forEach(section => {
+                const rows = section.rows.filter(([, v]) => v !== '—');
+                if (rows.length === 0) return;
+
+                if (y > 260) { doc.addPage(); y = 15; }
+
+                // Section header
+                doc.setFillColor(245, 245, 248);
+                doc.rect(14, y - 1, pageWidth - 28, 8, 'F');
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(232, 119, 46);
+                doc.text(section.title, 17, y + 4);
+                y += 11;
+
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(9);
+
+                rows.forEach(([label, value]) => {
+                    if (y > 275) { doc.addPage(); y = 15; }
+
+                    doc.setTextColor(100, 100, 120);
+                    doc.text(label, 17, y);
+
+                    doc.setTextColor(30, 30, 46);
+                    const maxWidth = pageWidth - 90;
+                    const lines = doc.splitTextToSize(String(value), maxWidth);
+                    doc.text(lines, 75, y);
+                    y += Math.max(lines.length * 4.5, 5);
+                });
+
+                y += 4;
+            });
+
+            // Footer
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.setFontSize(8);
+                doc.setTextColor(150, 150, 165);
+                doc.text(`Agência DPX — Implementação de IA | Página ${i} de ${pageCount}`, pageWidth / 2, 290, { align: 'center' });
+            }
+
+            return doc;
+        }
+
+        function exportSinglePDF() {
+            if (selectedIndex < 0) { alert('Selecione um formulário'); return; }
+            const form = formularios[selectedIndex];
+            const doc = buildPDFForForm(form);
+            const safeName = (form.nome_empresa || 'formulario').replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+            doc.save(`formulario_${safeName}.pdf`);
+        }
+
+        function exportPDF() {
+            if (formularios.length === 0) { alert('Nenhum formulário para exportar'); return; }
+            if (formularios.length === 1) {
+                const doc = buildPDFForForm(formularios[0]);
+                doc.save('formularios_dpx.pdf');
+                return;
+            }
+            // Multiple forms: one PDF with all
+            const { jsPDF } = window.jspdf;
+            let combined = null;
+            formularios.forEach((form, i) => {
+                const doc = buildPDFForForm(form);
+                if (i === 0) {
+                    combined = doc;
+                } else {
+                    const pageCount = doc.internal.getNumberOfPages();
+                    for (let p = 1; p <= pageCount; p++) {
+                        combined.addPage();
+                        const srcPage = doc.internal.pages[p];
+                        combined.internal.pages[combined.internal.getNumberOfPages()] = srcPage;
+                    }
+                }
+            });
+            // Simpler approach: export individual PDFs in a zip, or just export selected
+            // For now, export each as separate download
+            formularios.forEach((form, i) => {
+                const doc = buildPDFForForm(form);
+                const safeName = (form.nome_empresa || 'formulario').replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+                setTimeout(() => doc.save(`formulario_${safeName}.pdf`), i * 500);
+            });
         }
 
         function downloadFile(content, filename, type) {
