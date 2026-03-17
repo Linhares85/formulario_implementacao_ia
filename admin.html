@@ -478,14 +478,17 @@
                     const { data, error } = await supabaseClient
                         .from('Formularios - IA')
                         .select('*')
-                        .order('created_at', { ascending: false });
+                        .order('criado_em', { ascending: false });
 
+                    if (error) {
+                        console.error('Supabase load error:', error);
+                    }
                     if (!error && data) {
                         data.forEach(row => {
                             formularios.push({
                                 id: row.id,
                                 source: 'supabase',
-                                created_at: row.created_at,
+                                created_at: row.criado_em || row['data e hora'],
                                 dados: row.dados || row,
                                 nome_empresa: row.nome_empresa || row.dados?.empresa?.nome || 'Sem nome',
                                 responsavel_nome: row.responsavel_nome || row.dados?.contato?.nome || '',
