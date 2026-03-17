@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Painel DPX</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        surface: { 700: '#1e1e2e', 800: '#151521', 900: '#0c0c14', 950: '#08080e' },
+                        primary: { DEFAULT: '#e8772e', light: '#f0944d', dark: '#c75f1a' },
+                        accent: '#e8772e',
+                        muted: { DEFAULT: '#6b6b80', light: '#8b8ba0' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background: #0c0c14; }
+        .input-field {
+            background: #0c0c14;
+            border: 1px solid rgba(255,255,255,0.08);
+            transition: all 0.2s ease;
+            color: #e0e0e8;
+        }
+        .input-field::placeholder { color: #4a4a5e; }
+        .input-field:focus {
+            border-color: #e8772e;
+            box-shadow: 0 0 0 2px rgba(232,119,46,0.12);
+            outline: none;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #e8772e, #c75f1a);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #f0944d, #e8772e);
+            box-shadow: 0 4px 20px rgba(232,119,46,0.3);
+        }
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up { animation: fadeInUp 0.5s ease forwards; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center font-sans text-white p-4">
+
+    <div class="w-full max-w-md animate-fade-in-up">
+
+        <!-- Back link -->
+        <a href="index.html" class="inline-flex items-center gap-2 text-muted hover:text-primary text-sm mb-8 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+            Voltar ao Início
+        </a>
+
+        <!-- Login Card -->
+        <div class="bg-surface-800 border border-white/5 rounded-2xl p-8">
+
+            <!-- Logo -->
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center gap-3 mb-4">
+                    <svg class="w-10 h-10" viewBox="15 20 200 222" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd">
+                        <path fill="#e8772e" fill-rule="nonzero" d="M45.47 56.98l59.22 -34.19 19.74 11.4 -59.22 34.19 -19.74 -11.4zm78.96 45.58l-39.48 -22.79 78.95 -45.59 -59.22 -34.19 -98.7 56.98 98.7 56.98 19.74 -11.4z"/>
+                        <path fill="#e8772e" fill-rule="nonzero" d="M19.74 169.95l0.01 -68.38 51.05 29.48 8.17 14.15 -0.01 49.51c0,0 -8.18,4.71 -8.17,4.72l-51.05 -29.47zm78.95 45.59l0.01 -68.38c0,0 -19.72,-34.18 -19.73,-34.19l-78.95 -45.6 -0.01 113.97c0,0 78.94,45.59 78.95,45.59l19.74 -11.39z"/>
+                        <polygon fill="#e8772e" fill-rule="nonzero" points="209.38,67.36 197.12,60.85 203.05,57.46 167.31,52.99 171.41,75.59 177.27,72.23 189.64,78.75 189.63,78.75 189.63,114.9 181.46,129.06 138.59,153.81 138.57,153.8 124.84,168.34 120.81,175.25 120.31,176.04 110.68,192.72 110.68,238.31 130.42,226.91 130.42,190.76 138.59,176.61 181.46,151.85 181.47,151.87 181.53,151.78 199.51,130.04 199.51,130.04 209.38,112.94"/>
+                        <polygon fill="#e8772e" fill-rule="nonzero" points="122.21,166.12 135.51,152.03 130.42,149.09 130.42,112.94 110.68,124.34 110.68,169.93 117.58,173.92 117.87,173.46"/>
+                        <polygon fill="#e8772e" fill-rule="nonzero" points="184.49,153.6 189.64,156.58 189.64,192.72 209.37,181.33 209.37,135.74 202.53,131.79"/>
+                    </svg>
+                    <span class="text-xl font-bold">Agência <span class="text-primary">DPX</span></span>
+                </div>
+                <h1 class="text-lg font-semibold text-white">Painel Administrativo</h1>
+                <p class="text-muted text-sm mt-1">Faça login para continuar</p>
+            </div>
+
+            <!-- Error Message -->
+            <div id="errorMsg" class="hidden bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-xl px-4 py-3 mb-6">
+                <span id="errorText"></span>
+            </div>
+
+            <!-- Form -->
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Email</label>
+                        <input type="email" id="email" required placeholder="admin@dpx.com.br"
+                            class="input-field w-full px-4 py-3 rounded-xl text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Senha</label>
+                        <div class="relative">
+                            <input type="password" id="password" required placeholder="••••••••"
+                                class="input-field w-full px-4 py-3 rounded-xl text-sm pr-12">
+                            <button type="button" onclick="togglePassword()" class="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-white transition-colors">
+                                <svg id="eyeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" id="btnLogin" class="btn-primary w-full py-3 rounded-xl text-white font-medium text-sm mt-6 flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                    </svg>
+                    Entrar
+                </button>
+            </form>
+        </div>
+
+        <!-- Footer -->
+        <p class="text-center text-muted text-xs mt-6">Agência DPX © 2025 — Implementação de IA</p>
+
+    </div>
+
+    <script>
+        // ==========================================
+        // SUPABASE CONFIG
+        // ==========================================
+        const SUPABASE_URL = 'https://ajxocisljljuqkinfisw.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFqeG9jaXNsamxqdXFraW5maXN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg2MTI3MTksImV4cCI6MjA2NDE4ODcxOX0.zNF3r_KK7I7fQm4-7kBlQwwcWwyMqEp4i6cOYWxfosY';
+
+        let supabaseClient = null;
+
+        try {
+            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch (e) {
+            console.warn('Supabase não disponível, usando modo offline');
+        }
+
+        // Check if already logged in
+        (async () => {
+            if (supabaseClient) {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (session) {
+                    window.location.href = 'admin.html';
+                }
+            }
+        })();
+
+        function togglePassword() {
+            const input = document.getElementById('password');
+            const icon = document.getElementById('eyeIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>';
+            } else {
+                input.type = 'password';
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
+            }
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('errorMsg');
+            document.getElementById('errorText').textContent = msg;
+            el.classList.remove('hidden');
+        }
+
+        function hideError() {
+            document.getElementById('errorMsg').classList.add('hidden');
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            hideError();
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('btnLogin');
+
+            btn.disabled = true;
+            btn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Entrando...';
+
+            // Try Supabase Auth
+            if (supabaseClient) {
+                try {
+                    const { data, error } = await supabaseClient.auth.signInWithPassword({
+                        email: email,
+                        password: password
+                    });
+
+                    if (error) {
+                        showError(error.message === 'Invalid login credentials'
+                            ? 'Email ou senha incorretos'
+                            : error.message);
+                        resetBtn();
+                        return;
+                    }
+
+                    if (data.session) {
+                        window.location.href = 'admin.html';
+                        return;
+                    }
+                } catch (err) {
+                    console.error('Erro Supabase:', err);
+                }
+            }
+
+            // Fallback: offline mode (demo)
+            if (email === 'admin@dpx.com.br' && password === 'admin123') {
+                localStorage.setItem('dpx_admin_session', JSON.stringify({
+                    user: { email: email },
+                    offline: true,
+                    timestamp: Date.now()
+                }));
+                window.location.href = 'admin.html';
+                return;
+            }
+
+            showError('Email ou senha incorretos');
+            resetBtn();
+        }
+
+        function resetBtn() {
+            const btn = document.getElementById('btnLogin');
+            btn.disabled = false;
+            btn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg> Entrar';
+        }
+    </script>
+
+</body>
+</html>

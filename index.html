@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agência DPX | Implementação de IA</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        surface: { 700: '#1e1e2e', 800: '#151521', 900: '#0c0c14', 950: '#08080e' },
+                        primary: { DEFAULT: '#e8772e', light: '#f0944d', dark: '#c75f1a' },
+                        accent: '#e8772e',
+                        muted: { DEFAULT: '#6b6b80', light: '#8b8ba0' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { scrollbar-width: thin; scrollbar-color: #2a2a3e #0c0c14; }
+        body { background: #0c0c14; }
+
+        .card-hover {
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .card-hover:hover {
+            border-color: rgba(232,119,46,0.3);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(232,119,46,0.08);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #e8772e, #c75f1a);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #f0944d, #e8772e);
+            box-shadow: 0 4px 20px rgba(232,119,46,0.3);
+        }
+
+        .btn-outline {
+            border: 1px solid rgba(255,255,255,0.15);
+            transition: all 0.3s ease;
+        }
+        .btn-outline:hover {
+            border-color: #e8772e;
+            color: #e8772e;
+            box-shadow: 0 4px 20px rgba(232,119,46,0.1);
+        }
+
+        .glow-dot {
+            width: 6px; height: 6px;
+            background: #e8772e;
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(232,119,46,0.6);
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center font-sans text-white p-4">
+
+    <div class="max-w-4xl w-full text-center">
+
+        <!-- Logo DPX -->
+        <div class="mb-10 animate-fade-in-up opacity-0">
+            <div class="inline-flex items-center gap-3 mb-4">
+                <svg class="w-12 h-12" viewBox="15 20 200 222" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd">
+                    <path fill="#e8772e" fill-rule="nonzero" d="M45.47 56.98l59.22 -34.19 19.74 11.4 -59.22 34.19 -19.74 -11.4zm78.96 45.58l-39.48 -22.79 78.95 -45.59 -59.22 -34.19 -98.7 56.98 98.7 56.98 19.74 -11.4z"/>
+                    <path fill="#e8772e" fill-rule="nonzero" d="M19.74 169.95l0.01 -68.38 51.05 29.48 8.17 14.15 -0.01 49.51c0,0 -8.18,4.71 -8.17,4.72l-51.05 -29.47zm78.95 45.59l0.01 -68.38c0,0 -19.72,-34.18 -19.73,-34.19l-78.95 -45.6 -0.01 113.97c0,0 78.94,45.59 78.95,45.59l19.74 -11.39z"/>
+                    <polygon fill="#e8772e" fill-rule="nonzero" points="209.38,67.36 197.12,60.85 203.05,57.46 167.31,52.99 171.41,75.59 177.27,72.23 189.64,78.75 189.63,78.75 189.63,114.9 181.46,129.06 138.59,153.81 138.57,153.8 124.84,168.34 120.81,175.25 120.31,176.04 110.68,192.72 110.68,238.31 130.42,226.91 130.42,190.76 138.59,176.61 181.46,151.85 181.47,151.87 181.53,151.78 199.51,130.04 199.51,130.04 209.38,112.94"/>
+                    <polygon fill="#e8772e" fill-rule="nonzero" points="122.21,166.12 135.51,152.03 130.42,149.09 130.42,112.94 110.68,124.34 110.68,169.93 117.58,173.92 117.87,173.46"/>
+                    <polygon fill="#e8772e" fill-rule="nonzero" points="184.49,153.6 189.64,156.58 189.64,192.72 209.37,181.33 209.37,135.74 202.53,131.79"/>
+                </svg>
+                <span class="text-2xl font-bold tracking-tight">Agência <span class="text-primary">DPX</span></span>
+            </div>
+            <h1 class="text-3xl md:text-4xl font-bold text-white mb-3">Implementação de Agentes de <span class="text-primary">IA</span></h1>
+            <p class="text-muted text-base md:text-lg max-w-xl mx-auto">Selecione uma opção para continuar</p>
+        </div>
+
+        <!-- Cards -->
+        <div class="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+
+            <!-- Card 1: Formulário Público -->
+            <div class="card-hover bg-surface-800 rounded-2xl p-8 text-left animate-fade-in-up opacity-0 delay-100">
+                <div class="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
+                    <svg class="w-7 h-7 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                </div>
+                <h2 class="text-xl font-semibold text-white mb-2">Formulário Público</h2>
+                <p class="text-muted text-sm mb-8 leading-relaxed">Preencha o formulário para solicitar implementação de IA para sua empresa</p>
+                <a href="formulario-v2.html" class="btn-primary inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white font-medium text-sm w-full justify-center">
+                    Acessar Formulário
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                    </svg>
+                </a>
+            </div>
+
+            <!-- Card 2: Painel Administrativo -->
+            <div class="card-hover bg-surface-800 rounded-2xl p-8 text-left animate-fade-in-up opacity-0 delay-200">
+                <div class="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
+                    <svg class="w-7 h-7 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </div>
+                <h2 class="text-xl font-semibold text-white mb-2">Painel Administrativo</h2>
+                <p class="text-muted text-sm mb-8 leading-relaxed">Gerencie submissões, visualize dados e exporte relatórios</p>
+                <a href="login.html" class="btn-outline inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white font-medium text-sm w-full justify-center">
+                    Acessar Administração
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                    </svg>
+                </a>
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-12 animate-fade-in-up opacity-0 delay-300">
+            <div class="flex items-center justify-center gap-2 text-muted text-xs">
+                <div class="glow-dot"></div>
+                <span>Sistema ativo</span>
+                <span class="mx-2">•</span>
+                <span>v2.0</span>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

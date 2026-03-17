@@ -1,0 +1,1700 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Implementação de Agente de IA | Agência DPX</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        surface: { 700: '#1e1e2e', 800: '#151521', 900: '#0c0c14', 950: '#08080e' },
+                        primary: { DEFAULT: '#e8772e', light: '#f0944d', dark: '#c75f1a' },
+                        accent: '#e8772e',
+                        muted: { DEFAULT: '#6b6b80', light: '#8b8ba0' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { scrollbar-width: thin; scrollbar-color: #2a2a3e #0c0c14; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #0c0c14; }
+        ::-webkit-scrollbar-thumb { background: #2a2a3e; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3a3a50; }
+
+        body { background: #0c0c14; }
+
+        .section-card {
+            background: #111119;
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+        }
+        .section-card:hover { border-color: rgba(255,255,255,0.1); }
+
+        .input-field {
+            background: #0c0c14;
+            border: 1px solid rgba(255,255,255,0.08);
+            transition: all 0.2s ease;
+            color: #e0e0e8;
+            font-size: 14px;
+        }
+        .input-field::placeholder { color: #4a4a5e; }
+        .input-field:focus {
+            border-color: #e8772e;
+            box-shadow: 0 0 0 2px rgba(232,119,46,0.12);
+            outline: none;
+        }
+
+        .checkbox-custom { accent-color: #e8772e; }
+        .radio-custom { accent-color: #e8772e; }
+
+        .btn-primary {
+            background: #e8772e;
+            transition: all 0.2s ease;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+        }
+        .btn-primary:hover {
+            background: #f0944d;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(232,119,46,0.25);
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            transition: all 0.2s ease;
+        }
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.12);
+        }
+
+        .progress-step.active { background: #e8772e; color: white; }
+        .progress-step.completed { background: #e8772e; color: white; opacity: 0.7; }
+        .progress-step { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.25); }
+        .progress-line.active { background: rgba(232,119,46,0.4); }
+        .progress-line { background: rgba(255,255,255,0.06); }
+
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .dynamic-item { animation: slideIn 0.25s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
+
+        select option { background: #111119; color: #e0e0e8; }
+
+        .option-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            transition: all 0.15s ease;
+        }
+        .option-card:hover {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.1);
+        }
+
+        .section-icon {
+            background: rgba(232,119,46,0.1);
+            border: 1px solid rgba(232,119,46,0.15);
+        }
+
+        .divider { border-color: rgba(255,255,255,0.05); }
+
+        label.text-sm { font-size: 13px; letter-spacing: 0.01em; }
+
+        .badge {
+            background: rgba(232,119,46,0.12);
+            color: #e8772e;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body class="text-white/85 font-sans min-h-screen" style="background: #0c0c14;">
+
+    <!-- Header -->
+    <header class="sticky top-0 z-50 border-b border-white/[0.06]" style="background: rgba(12,12,20,0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);">
+        <div class="max-w-4xl mx-auto px-6 py-3.5 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-sm" style="background: #e8772e;">
+                    DPX
+                </div>
+                <div>
+                    <h1 class="text-[15px] font-semibold text-white/90">Implementação de Agente de IA</h1>
+                    <p class="text-[11px] text-white/30 font-medium">Agência DPX &bull; v2.0</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="index.html" class="flex items-center gap-1.5 text-[11px] text-white/40 hover:text-primary font-medium transition-colors">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    Início
+                </a>
+                <div class="hidden md:flex items-center gap-1.5 text-[11px] text-white/25 font-medium">
+                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-500/70"></div>
+                    Seguro
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Progress Bar -->
+    <div class="sticky top-[57px] z-40 border-b border-white/[0.04] py-3" style="background: rgba(12,12,20,0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);">
+        <div class="max-w-4xl mx-auto px-6">
+            <div class="flex items-center justify-between gap-0.5" id="progressBar">
+                <!-- Generated by JS -->
+            </div>
+            <p class="text-[11px] text-white/20 mt-2 text-center font-medium" id="progressText">Etapa 1 de 10</p>
+        </div>
+    </div>
+
+    <!-- Form Container -->
+    <main class="max-w-4xl mx-auto px-6 py-8">
+        <form id="formIA" onsubmit="return handleSubmit(event)" novalidate>
+
+            <!-- ============================================== -->
+            <!-- ETAPA 1: Informações da Empresa -->
+            <!-- ============================================== -->
+            <div class="form-step fade-in" data-step="1">
+                <div class="section-card p-7 mb-5">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-lg section-icon flex items-center justify-center">
+                            <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-semibold text-white/90">Informações da Empresa</h2>
+                            <p class="text-xs text-white/25">Dados cadastrais e perfil do negócio</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div class="md:col-span-2">
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Nome da empresa <span class="text-primary">*</span></label>
+                            <input type="text" name="nome_empresa" required class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Ex: Empresa ABC Ltda">
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">CNPJ <span class="text-primary">*</span></label>
+                            <input type="text" name="cnpj" required class="input-field w-full rounded-lg px-4 py-2.5" placeholder="00.000.000/0000-00" oninput="maskCNPJ(this)">
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Segmento de atuação <span class="text-primary">*</span></label>
+                            <input type="text" name="segmento" required class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Ex: E-commerce, Saúde, Educação...">
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Endereço completo</label>
+                            <input type="text" name="endereco" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Rua, número, bairro, cidade - UF">
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Número de colaboradores <span class="text-primary">*</span></label>
+                            <select name="num_colaboradores" required class="input-field w-full rounded-xl px-4 py-3 text-white">
+                                <option value="">Selecione...</option>
+                                <option value="1-5">1 a 5</option>
+                                <option value="6-20">6 a 20</option>
+                                <option value="21-50">21 a 50</option>
+                                <option value="51-200">51 a 200</option>
+                                <option value="201-500">201 a 500</option>
+                                <option value="500+">Mais de 500</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Faturamento médio mensal <span class="text-primary">*</span></label>
+                            <select name="faturamento" required class="input-field w-full rounded-xl px-4 py-3 text-white">
+                                <option value="">Selecione...</option>
+                                <option value="ate-10k">Até R$ 10.000</option>
+                                <option value="10k-50k">R$ 10.000 a R$ 50.000</option>
+                                <option value="50k-100k">R$ 50.000 a R$ 100.000</option>
+                                <option value="100k-500k">R$ 100.000 a R$ 500.000</option>
+                                <option value="500k-1m">R$ 500.000 a R$ 1.000.000</option>
+                                <option value="1m+">Acima de R$ 1.000.000</option>
+                            </select>
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Principais produtos/serviços oferecidos <span class="text-primary">*</span></label>
+                            <textarea name="produtos_servicos" required rows="3" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Descreva seus principais produtos e serviços..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Público-alvo <span class="text-primary">*</span></label>
+                            <select name="publico_alvo" required class="input-field w-full rounded-xl px-4 py-3 text-white">
+                                <option value="">Selecione...</option>
+                                <option value="b2b">B2B (Empresas)</option>
+                                <option value="b2c">B2C (Consumidor final)</option>
+                                <option value="b2b2c">B2B2C (Ambos)</option>
+                                <option value="d2c">D2C (Direto ao consumidor)</option>
+                                <option value="governo">Governo/Setor público</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Site da empresa</label>
+                            <input type="url" name="site" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="https://www.suaempresa.com.br">
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Descreva brevemente a história da empresa</label>
+                            <textarea name="historia_empresa" rows="3" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Quando foi fundada, como surgiu, qual a missão..."></textarea>
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Missão, Visão e Valores</label>
+                            <textarea name="missao_visao_valores" rows="3" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Descreva a missão, visão e valores da empresa..."></textarea>
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Diferenciais competitivos</label>
+                            <textarea name="diferenciais" rows="3" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="O que diferencia sua empresa da concorrência?"></textarea>
+                        </div>
+
+                        <!-- Maturidade Digital -->
+                        <div class="md:col-span-2 pt-4 border-t border-white/[0.05]">
+                            <label class="block text-[13px] font-medium text-white/50 mb-3">Nível de maturidade digital da empresa <span class="text-primary">*</span></label>
+                            <div class="grid grid-cols-1 gap-3">
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="radio" name="maturidade_digital" value="basico" class="radio-custom w-5 h-5" onchange="toggleMaturidade()"> <span>Básico — Usa WhatsApp e planilhas</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="radio" name="maturidade_digital" value="intermediario" class="radio-custom w-5 h-5" onchange="toggleMaturidade()"> <span>Intermediário — Usa CRM, automações simples</span>
+                                </label>
+                                <div id="maturidade_intermediario_field" class="hidden ml-8">
+                                    <input type="text" name="maturidade_ferramentas_intermediario" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Quais ferramentas usa? (Ex: RD Station, Pipedrive, Mailchimp...)">
+                                </div>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="radio" name="maturidade_digital" value="avancado" class="radio-custom w-5 h-5" onchange="toggleMaturidade()"> <span>Avançado — Integrações, APIs, sistemas conectados</span>
+                                </label>
+                                <div id="maturidade_avancado_field" class="hidden ml-8">
+                                    <input type="text" name="maturidade_ferramentas_avancado" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Quais sistemas e integrações? (Ex: HubSpot + Stripe + ERP...)">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================== -->
+            <!-- ETAPA 2: Objetivos do Agente de IA -->
+            <!-- ============================================== -->
+            <div class="form-step fade-in hidden" data-step="2">
+                <div class="section-card p-7 mb-5">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-lg section-icon flex items-center justify-center">
+                            <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-semibold text-white/90">Objetivos do Agente de IA</h2>
+                            <p class="text-xs text-white/25">O que o agente deve fazer pela sua empresa</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <!-- Diagnostico de Dor -->
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-3">Qual o maior problema que a IA vai resolver hoje? <span class="text-primary">*</span></label>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="dor_principal[]" value="demora_atendimento" class="checkbox-custom w-5 h-5 rounded"> <span>Demora no atendimento</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="dor_principal[]" value="alto_custo" class="checkbox-custom w-5 h-5 rounded"> <span>Alto custo operacional</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="dor_principal[]" value="perda_leads" class="checkbox-custom w-5 h-5 rounded"> <span>Perda de leads/oportunidades</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="dor_principal[]" value="fora_horario" class="checkbox-custom w-5 h-5 rounded"> <span>Falta de atendimento fora do horário</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="dor_principal[]" value="equipe_sobrecarregada" class="checkbox-custom w-5 h-5 rounded"> <span>Equipe sobrecarregada</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="dor_principal[]" value="inconsistencia" class="checkbox-custom w-5 h-5 rounded"> <span>Inconsistência nas respostas</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="dor_principal[]" value="dificuldade_escalar" class="checkbox-custom w-5 h-5 rounded"> <span>Dificuldade em escalar</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="dor_principal[]" value="falta_dados" class="checkbox-custom w-5 h-5 rounded"> <span>Falta de dados/métricas</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer md:col-span-2">
+                                    <input type="checkbox" name="dor_principal[]" value="outro" class="checkbox-custom w-5 h-5 rounded" onchange="document.getElementById('dor_outro_field').classList.toggle('hidden', !this.checked)"> <span>Outro</span>
+                                </label>
+                            </div>
+                            <div id="dor_outro_field" class="hidden mt-3">
+                                <input type="text" name="dor_outro" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Descreva qual outro problema...">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Descreva com mais detalhes (opcional)</label>
+                            <textarea name="problema_detalhes" rows="2" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Se quiser detalhar o problema principal..."></textarea>
+                        </div>
+
+                        <!-- Areas da empresa -->
+                        <div class="pt-4 border-t border-white/[0.05]">
+                            <label class="block text-[13px] font-medium text-white/50 mb-3">Áreas da empresa que o agente deve atender <span class="text-primary">*</span></label>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="areas[]" value="comercial" class="checkbox-custom w-5 h-5 rounded"> <span>Comercial/Vendas</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="areas[]" value="atendimento" class="checkbox-custom w-5 h-5 rounded"> <span>Atendimento ao cliente</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="areas[]" value="processos" class="checkbox-custom w-5 h-5 rounded"> <span>Processos internos</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="areas[]" value="marketing" class="checkbox-custom w-5 h-5 rounded"> <span>Marketing</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="areas[]" value="rh" class="checkbox-custom w-5 h-5 rounded"> <span>Recursos Humanos</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="areas[]" value="financeiro" class="checkbox-custom w-5 h-5 rounded"> <span>Financeiro/Cobrança</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="areas[]" value="suporte" class="checkbox-custom w-5 h-5 rounded"> <span>Suporte técnico</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="areas[]" value="agendamento" class="checkbox-custom w-5 h-5 rounded"> <span>Agendamento</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Acoes Praticas do Agente -->
+                        <div class="pt-4 border-t border-white/[0.05]">
+                            <label class="block text-[13px] font-medium text-white/50 mb-3">O que você quer que o agente faça na prática? <span class="text-primary">*</span></label>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="acoes_praticas[]" value="responder_clientes" class="checkbox-custom w-5 h-5 rounded"> <span>Responder clientes automaticamente</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="acoes_praticas[]" value="qualificar_leads" class="checkbox-custom w-5 h-5 rounded"> <span>Qualificar leads</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="acoes_praticas[]" value="agendar_reunioes" class="checkbox-custom w-5 h-5 rounded"> <span>Agendar reuniões</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="acoes_praticas[]" value="enviar_propostas" class="checkbox-custom w-5 h-5 rounded"> <span>Enviar propostas</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="acoes_praticas[]" value="consultar_dados" class="checkbox-custom w-5 h-5 rounded"> <span>Consultar dados internos</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="acoes_praticas[]" value="gerar_relatorios" class="checkbox-custom w-5 h-5 rounded"> <span>Gerar relatórios</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="acoes_praticas[]" value="automatizar_processos" class="checkbox-custom w-5 h-5 rounded"> <span>Automatizar processos internos</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="acoes_praticas[]" value="cobrar_followup" class="checkbox-custom w-5 h-5 rounded"> <span>Cobrar clientes / follow-up</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer md:col-span-2">
+                                    <input type="checkbox" name="acoes_praticas[]" value="outro" class="checkbox-custom w-5 h-5 rounded" onchange="document.getElementById('acoes_outro_field').classList.toggle('hidden', !this.checked)"> <span>Outro</span>
+                                </label>
+                            </div>
+                            <div id="acoes_outro_field" class="hidden mt-3">
+                                <input type="text" name="acoes_outro" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Descreva outra ação...">
+                            </div>
+                        </div>
+
+                        <!-- Expectativas com o agente -->
+                        <div class="pt-4 border-t border-white/[0.05]">
+                            <label class="block text-[13px] font-medium text-white/50 mb-3">O que você espera do seu agente? <span class="text-primary">*</span></label>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="expectativas[]" value="automatizar_tudo" class="checkbox-custom w-5 h-5 rounded"> <span>Automatizar tudo (substituir humanos)</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="expectativas[]" value="ajudar_time" class="checkbox-custom w-5 h-5 rounded"> <span>Ajudar o time (complementar humanos)</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="expectativas[]" value="testar_inovacao" class="checkbox-custom w-5 h-5 rounded"> <span>Testar inovação (projeto piloto)</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="expectativas[]" value="reduzir_custos" class="checkbox-custom w-5 h-5 rounded"> <span>Reduzir custos operacionais</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="expectativas[]" value="melhorar_experiencia" class="checkbox-custom w-5 h-5 rounded"> <span>Melhorar experiência do cliente</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="expectativas[]" value="escalar_sem_contratar" class="checkbox-custom w-5 h-5 rounded"> <span>Escalar sem contratar</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Como é feito hoje o processo que o agente vai automatizar?</label>
+                            <textarea name="processo_atual" rows="3" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Descreva como funciona o processo atual, quem faz, quanto tempo leva..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================== -->
+            <!-- ETAPA 3: Tom de Voz e Personalidade -->
+            <!-- ============================================== -->
+            <div class="form-step fade-in hidden" data-step="3">
+                <div class="section-card p-7 mb-5">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-lg section-icon flex items-center justify-center">
+                            <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-semibold text-white/90">Tom de Voz e Personalidade do Agente</h2>
+                            <p class="text-xs text-white/25">Como o agente deve se comunicar com seus clientes</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-3">Tom de comunicação desejado <span class="text-primary">*</span></label>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="radio" name="tom_comunicacao" value="formal" class="radio-custom w-5 h-5"> <span>Formal e profissional</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="radio" name="tom_comunicacao" value="amigavel" class="radio-custom w-5 h-5"> <span>Amigável e acolhedor</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="radio" name="tom_comunicacao" value="casual" class="radio-custom w-5 h-5"> <span>Casual e descontraído</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="radio" name="tom_comunicacao" value="tecnico" class="radio-custom w-5 h-5"> <span>Técnico e especializado</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="radio" name="tom_comunicacao" value="consultivo" class="radio-custom w-5 h-5"> <span>Consultivo e orientador</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="radio" name="tom_comunicacao" value="vendedor" class="radio-custom w-5 h-5"> <span>Persuasivo e vendedor</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Nome do agente (persona)</label>
+                            <input type="text" name="nome_agente" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Ex: Ana, Carlos, Assistente Virtual DPX...">
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">O agente deve usar emojis?</label>
+                            <div class="flex gap-4">
+                                <label class="flex items-center gap-2 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="radio" name="usa_emojis" value="sim" class="radio-custom w-5 h-5"> <span>Sim</span>
+                                </label>
+                                <label class="flex items-center gap-2 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="radio" name="usa_emojis" value="moderado" class="radio-custom w-5 h-5"> <span>Moderadamente</span>
+                                </label>
+                                <label class="flex items-center gap-2 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="radio" name="usa_emojis" value="nao" class="radio-custom w-5 h-5"> <span>Não</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Mensagem de saudação inicial <span class="text-primary">*</span></label>
+                            <textarea name="saudacao" required rows="3" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Ex: Olá! Sou a Ana, assistente virtual da Empresa X. Como posso te ajudar hoje?"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Mensagem quando o agente não souber responder</label>
+                            <textarea name="msg_nao_sabe" rows="2" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Ex: Entendo sua dúvida! Vou transferir para um especialista que poderá te ajudar melhor."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Mensagem de encerramento</label>
+                            <textarea name="msg_encerramento" rows="2" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Ex: Foi um prazer te atender! Se precisar de algo mais, estou por aqui."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Frases ou expressões que o agente NÃO deve usar</label>
+                            <textarea name="frases_proibidas" rows="2" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Ex: Não usar gírias, não prometer prazos específicos, não falar de concorrentes..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Referências de comunicação (marcas ou pessoas)</label>
+                            <textarea name="referencias_comunicacao" rows="2" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Ex: Tom parecido com Magazine Luiza, comunicação como Nubank..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================== -->
+            <!-- ETAPA 4: Regras de Negócio e Políticas Comerciais -->
+            <!-- ============================================== -->
+            <div class="form-step fade-in hidden" data-step="4">
+                <div class="section-card p-7 mb-5">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-lg section-icon flex items-center justify-center">
+                            <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-semibold text-white/90">Regras de Negócio e Políticas Comerciais</h2>
+                            <p class="text-xs text-white/25">Informações comerciais que o agente precisa saber</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Horário de funcionamento <span class="text-primary">*</span></label>
+                            <input type="text" name="horario_funcionamento" required class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Ex: Seg-Sex 8h às 18h, Sáb 8h às 12h">
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Formas de pagamento aceitas</label>
+                            <textarea name="formas_pagamento" rows="2" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Ex: PIX, cartão de crédito (até 12x), boleto, transferência..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Política de preços e descontos</label>
+                            <textarea name="politica_precos" rows="3" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Ex: Desconto de 10% para pagamento à vista, tabela de preços por volume, condições especiais..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Política de troca/devolução</label>
+                            <textarea name="politica_troca" rows="3" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Descreva as regras de troca, devolução e reembolso..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Política de garantia</label>
+                            <textarea name="politica_garantia" rows="2" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Ex: 90 dias de garantia, garantia estendida disponível..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Prazos de entrega/atendimento</label>
+                            <textarea name="prazos_entrega" rows="2" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Ex: Entrega em até 5 dias úteis, resposta em até 2 horas..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Área de cobertura/atendimento</label>
+                            <textarea name="area_cobertura" rows="2" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Ex: Todo Brasil, apenas SP e RJ, região metropolitana de BH..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Regras que o agente NUNCA deve quebrar</label>
+                            <textarea name="regras_inviolaveis" rows="3" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Ex: Nunca dar desconto acima de 15%, nunca prometer prazo menor que 3 dias, nunca compartilhar dados internos..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Informações de frete/logística</label>
+                            <textarea name="info_frete" rows="2" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Ex: Frete grátis acima de R$ 200, tabela de frete por região..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Promoções e ofertas atuais</label>
+                            <textarea name="promocoes_atuais" rows="2" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Descreva promoções vigentes que o agente pode divulgar..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================== -->
+            <!-- ETAPA 5: FAQ e Cenários de Atendimento -->
+            <!-- ============================================== -->
+            <div class="form-step fade-in hidden" data-step="5">
+                <div class="section-card p-7 mb-5">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-lg section-icon flex items-center justify-center">
+                            <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-semibold text-white/90">FAQ e Cenários de Atendimento</h2>
+                            <p class="text-xs text-white/25">Perguntas frequentes e situações que o agente deve saber responder</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <!-- Dynamic FAQ -->
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <label class="block text-[13px] font-medium text-white/50">Perguntas Frequentes (FAQ) <span class="text-primary">*</span></label>
+                                <button type="button" onclick="addFAQ()" class="text-xs text-primary/70 hover:text-primary flex items-center gap-1 transition">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                    Adicionar pergunta
+                                </button>
+                            </div>
+                            <div id="faqContainer" class="space-y-4">
+                                <div class="dynamic-item option-card rounded-lg p-4 space-y-3">
+                                    <div class="flex justify-between items-start">
+                                        <span class="text-xs text-primary font-semibold">FAQ #1</span>
+                                    </div>
+                                    <input type="text" name="faq_pergunta[]" class="input-field w-full rounded-lg px-3 py-2.5 text-white text-sm placeholder-gray-500" placeholder="Pergunta que o cliente costuma fazer...">
+                                    <textarea name="faq_resposta[]" rows="2" class="input-field w-full rounded-lg px-3 py-2.5 text-white text-sm placeholder-gray-500" placeholder="Resposta ideal que o agente deve dar..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Scenarios -->
+                        <div class="pt-4 border-t border-white/[0.05]">
+                            <div class="flex items-center justify-between mb-3">
+                                <label class="block text-[13px] font-medium text-white/50">Cenários de Atendimento</label>
+                                <button type="button" onclick="addCenario()" class="text-xs text-primary/70 hover:text-primary flex items-center gap-1 transition">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                    Adicionar cenário
+                                </button>
+                            </div>
+                            <p class="text-[11px] text-white/20 mb-3">Descreva situações reais e como o agente deve se comportar em cada uma.</p>
+                            <div id="cenarioContainer" class="space-y-4">
+                                <div class="dynamic-item option-card rounded-lg p-4 space-y-3">
+                                    <div class="flex justify-between items-start">
+                                        <span class="text-xs text-primary font-semibold">Cenário #1</span>
+                                    </div>
+                                    <input type="text" name="cenario_titulo[]" class="input-field w-full rounded-lg px-3 py-2.5 text-white text-sm placeholder-gray-500" placeholder="Título do cenário (Ex: Cliente quer cancelar pedido)">
+                                    <textarea name="cenario_descricao[]" rows="2" class="input-field w-full rounded-lg px-3 py-2.5 text-white text-sm placeholder-gray-500" placeholder="Descreva a situação e como o agente deve agir..."></textarea>
+                                    <textarea name="cenario_resposta[]" rows="2" class="input-field w-full rounded-lg px-3 py-2.5 text-white text-sm placeholder-gray-500" placeholder="Resposta/ação esperada do agente..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Objeções -->
+                        <div class="pt-4 border-t border-white/[0.05]">
+                            <div class="flex items-center justify-between mb-3">
+                                <label class="block text-[13px] font-medium text-white/50">Objeções comuns e como responder</label>
+                                <button type="button" onclick="addObjecao()" class="text-xs text-primary/70 hover:text-primary flex items-center gap-1 transition">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                    Adicionar objeção
+                                </button>
+                            </div>
+                            <div id="objecaoContainer" class="space-y-4">
+                                <div class="dynamic-item option-card rounded-lg p-4 space-y-3">
+                                    <span class="text-xs text-primary font-semibold">Objeção #1</span>
+                                    <input type="text" name="objecao_cliente[]" class="input-field w-full rounded-lg px-3 py-2.5 text-white text-sm placeholder-gray-500" placeholder="O que o cliente diz (Ex: Está muito caro)">
+                                    <textarea name="objecao_resposta[]" rows="2" class="input-field w-full rounded-lg px-3 py-2.5 text-white text-sm placeholder-gray-500" placeholder="Como o agente deve responder a essa objeção..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================== -->
+            <!-- ETAPA 6: Processos e Procedimentos -->
+            <!-- ============================================== -->
+            <div class="form-step fade-in hidden" data-step="6">
+                <div class="section-card p-7 mb-5">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-lg section-icon flex items-center justify-center">
+                            <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/></svg>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-semibold text-white/90">Processos e Procedimentos</h2>
+                            <p class="text-xs text-white/25">Fluxos operacionais que o agente precisa seguir</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Processo de vendas (passo a passo)</label>
+                            <textarea name="processo_vendas" rows="4" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Descreva o fluxo de vendas: 1. Cliente entra em contato → 2. Identifica necessidade → 3. Apresenta produto → 4. Negocia → 5. Fecha venda..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Processo de atendimento/suporte</label>
+                            <textarea name="processo_suporte" rows="4" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Descreva o fluxo de suporte: 1. Cliente relata problema → 2. Classifica urgência → 3. Tenta resolver → 4. Escala se necessário..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Processo de agendamento (se aplicável)</label>
+                            <textarea name="processo_agendamento" rows="3" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Como funciona o agendamento: horários disponíveis, confirmação, lembretes..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Processo de qualificação de leads</label>
+                            <textarea name="processo_leads" rows="3" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Quais perguntas fazer para qualificar? Quais critérios definem um lead quente?"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-3">Quando escalar para um humano? <span class="text-primary">*</span></label>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="escalacao[]" value="reclamacao" class="checkbox-custom w-5 h-5 rounded"> <span>Reclamação grave</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="escalacao[]" value="negociacao" class="checkbox-custom w-5 h-5 rounded"> <span>Negociação de valores</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="escalacao[]" value="tecnico" class="checkbox-custom w-5 h-5 rounded"> <span>Problema técnico complexo</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="escalacao[]" value="juridico" class="checkbox-custom w-5 h-5 rounded"> <span>Questão jurídica</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="escalacao[]" value="insatisfeito" class="checkbox-custom w-5 h-5 rounded"> <span>Cliente muito insatisfeito</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="escalacao[]" value="venda_grande" class="checkbox-custom w-5 h-5 rounded"> <span>Venda de alto valor</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Outras situações de escalação</label>
+                            <textarea name="escalacao_outros" rows="2" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Descreva outras situações em que o agente deve transferir para humano..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Para quem/qual canal escalar?</label>
+                            <textarea name="canal_escalacao" rows="2" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Ex: Transferir para WhatsApp do gerente, abrir ticket no sistema, enviar e-mail para suporte@..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================== -->
+            <!-- ETAPA 7: Canais, Integrações e Base de Conhecimento -->
+            <!-- ============================================== -->
+            <div class="form-step fade-in hidden" data-step="7">
+                <div class="section-card p-7 mb-5">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-lg section-icon flex items-center justify-center">
+                            <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-semibold text-white/90">Canais, Integrações e Base de Conhecimento</h2>
+                            <p class="text-xs text-white/25">Onde o agente vai atuar e de onde buscar informações</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-3">Canais de atendimento desejados <span class="text-primary">*</span></label>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="canais[]" value="whatsapp" class="checkbox-custom w-5 h-5 rounded"> <span>WhatsApp</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="canais[]" value="site" class="checkbox-custom w-5 h-5 rounded"> <span>Site</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="canais[]" value="instagram" class="checkbox-custom w-5 h-5 rounded"> <span>Instagram</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="canais[]" value="facebook" class="checkbox-custom w-5 h-5 rounded"> <span>Facebook</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="canais[]" value="telegram" class="checkbox-custom w-5 h-5 rounded"> <span>Telegram</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="canais[]" value="email" class="checkbox-custom w-5 h-5 rounded"> <span>E-mail</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="canais[]" value="telefone" class="checkbox-custom w-5 h-5 rounded"> <span>Telefone (voz)</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="canais[]" value="marketplace" class="checkbox-custom w-5 h-5 rounded"> <span>Marketplace</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Integrações necessárias</label>
+                            <textarea name="integracoes" rows="3" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Ex: CRM HubSpot, ERP SAP, Google Calendar, Stripe, Shopify, Mercado Livre, etc."></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label class="block text-[13px] font-medium text-white/50 mb-1.5">Possui APIs ou webhooks?</label>
+                                <select name="possui_apis" class="input-field w-full rounded-xl px-4 py-3 text-white">
+                                    <option value="">Selecione...</option>
+                                    <option value="sim">Sim</option>
+                                    <option value="nao">Não</option>
+                                    <option value="nao_sei">Não sei</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[13px] font-medium text-white/50 mb-1.5">Possui Business Manager (Meta)?</label>
+                                <select name="business_manager" class="input-field w-full rounded-xl px-4 py-3 text-white">
+                                    <option value="">Selecione...</option>
+                                    <option value="sim">Sim</option>
+                                    <option value="nao">Não</option>
+                                    <option value="nao_sei">Não sei</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="pt-4 border-t border-white/[0.05]">
+                            <h3 class="text-[15px] font-semibold text-white/80 mb-4">Base de Conhecimento</h3>
+
+                            <div>
+                                <label class="block text-[13px] font-medium text-white/50 mb-3">Tipos de conteúdo já disponíveis</label>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                        <input type="checkbox" name="conteudo[]" value="faq" class="checkbox-custom w-5 h-5 rounded"> <span>FAQ</span>
+                                    </label>
+                                    <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                        <input type="checkbox" name="conteudo[]" value="manuais" class="checkbox-custom w-5 h-5 rounded"> <span>Manuais</span>
+                                    </label>
+                                    <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                        <input type="checkbox" name="conteudo[]" value="scripts" class="checkbox-custom w-5 h-5 rounded"> <span>Scripts</span>
+                                    </label>
+                                    <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                        <input type="checkbox" name="conteudo[]" value="tickets" class="checkbox-custom w-5 h-5 rounded"> <span>Tickets</span>
+                                    </label>
+                                    <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                        <input type="checkbox" name="conteudo[]" value="artigos" class="checkbox-custom w-5 h-5 rounded"> <span>Artigos/Blog</span>
+                                    </label>
+                                    <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                        <input type="checkbox" name="conteudo[]" value="videos" class="checkbox-custom w-5 h-5 rounded"> <span>Vídeos</span>
+                                    </label>
+                                    <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                        <input type="checkbox" name="conteudo[]" value="planilhas" class="checkbox-custom w-5 h-5 rounded"> <span>Planilhas</span>
+                                    </label>
+                                    <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                        <input type="checkbox" name="conteudo[]" value="nao_tenho" class="checkbox-custom w-5 h-5 rounded"> <span>Não tenho</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-4">
+                                <div>
+                                    <label class="block text-[13px] font-medium text-white/50 mb-1.5">Onde os dados estão armazenados?</label>
+                                    <select name="armazenamento_dados" class="input-field w-full rounded-xl px-4 py-3 text-white">
+                                        <option value="">Selecione...</option>
+                                        <option value="google_drive">Google Drive</option>
+                                        <option value="notion">Notion</option>
+                                        <option value="sharepoint">SharePoint</option>
+                                        <option value="site">Site</option>
+                                        <option value="sistema_interno">Sistema interno</option>
+                                        <option value="nao_sei">Não sei</option>
+                                        <option value="outro">Outro</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[13px] font-medium text-white/50 mb-1.5">Formato predominante</label>
+                                    <select name="formato_dados" class="input-field w-full rounded-xl px-4 py-3 text-white">
+                                        <option value="">Selecione...</option>
+                                        <option value="pdf">PDF</option>
+                                        <option value="word">Word</option>
+                                        <option value="excel">Excel</option>
+                                        <option value="google_docs">Google Docs</option>
+                                        <option value="notion">Notion</option>
+                                        <option value="sql">Banco SQL</option>
+                                        <option value="nao_sei">Não sei</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mt-4">
+                                <div>
+                                    <label class="block text-[13px] font-medium text-white/50 mb-1.5">Dados sensíveis/confidenciais?</label>
+                                    <select name="dados_sensiveis" class="input-field w-full rounded-xl px-4 py-3 text-white">
+                                        <option value="">Selecione...</option>
+                                        <option value="sim">Sim</option>
+                                        <option value="nao">Não</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[13px] font-medium text-white/50 mb-1.5">Manual de cultura?</label>
+                                    <select name="manual_cultura" class="input-field w-full rounded-xl px-4 py-3 text-white">
+                                        <option value="">Selecione...</option>
+                                        <option value="sim">Sim</option>
+                                        <option value="nao">Não</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[13px] font-medium text-white/50 mb-1.5">Manual de produtos/serviços?</label>
+                                    <select name="manual_produtos" class="input-field w-full rounded-xl px-4 py-3 text-white">
+                                        <option value="">Selecione...</option>
+                                        <option value="sim">Sim</option>
+                                        <option value="nao">Não</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Upload de Documentos -->
+                            <div class="pt-4 border-t border-white/[0.05] mt-4">
+                                <label class="block text-[13px] font-medium text-white/50 mb-3">Upload de documentos da empresa</label>
+                                <p class="text-[11px] text-white/20 mb-3">Envie PDFs, manuais, catálogos, tabelas de preço ou qualquer material que ajude a treinar o agente.</p>
+                                <div id="uploadArea" class="border-2 border-dashed border-white/[0.08] rounded-lg p-6 text-center cursor-pointer hover:border-primary/30 transition-all"
+                                     onclick="document.getElementById('fileInput').click()"
+                                     ondragover="event.preventDefault(); this.classList.add('border-primary/50', 'bg-primary/5')"
+                                     ondragleave="this.classList.remove('border-primary/50', 'bg-primary/5')"
+                                     ondrop="event.preventDefault(); this.classList.remove('border-primary/50', 'bg-primary/5'); handleFiles(event.dataTransfer.files)">
+                                    <svg class="w-8 h-8 text-white/15 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                                    <p class="text-[13px] text-white/30">Arraste arquivos aqui ou <span class="text-primary/70">clique para selecionar</span></p>
+                                    <p class="text-[11px] text-white/15 mt-1">PDF, Word, Excel, CSV, TXT, imagens (máx. 10 arquivos / 50MB)</p>
+                                </div>
+                                <input type="file" id="fileInput" multiple accept=".pdf,.doc,.docx,.xlsx,.xls,.csv,.txt,.png,.jpg,.jpeg" class="hidden" onchange="handleFiles(this.files)">
+                                <div id="fileList" class="mt-3 space-y-2"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================== -->
+            <!-- ETAPA 8: Volume, Operação e Terminologia -->
+            <!-- ============================================== -->
+            <div class="form-step fade-in hidden" data-step="8">
+                <div class="section-card p-7 mb-5">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-lg section-icon flex items-center justify-center">
+                            <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-semibold text-white/90">Volume, Operação e Terminologia</h2>
+                            <p class="text-xs text-white/25">Dados operacionais e termos específicos do setor</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label class="block text-[13px] font-medium text-white/50 mb-1.5">Atendimentos/dia</label>
+                                <select name="atendimentos_dia" class="input-field w-full rounded-xl px-4 py-3 text-white">
+                                    <option value="">Selecione...</option>
+                                    <option value="1-10">1 a 10</option>
+                                    <option value="11-50">11 a 50</option>
+                                    <option value="51-200">51 a 200</option>
+                                    <option value="201-500">201 a 500</option>
+                                    <option value="500+">Mais de 500</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[13px] font-medium text-white/50 mb-1.5">Usuários simultâneos</label>
+                                <select name="usuarios_simultaneos" class="input-field w-full rounded-xl px-4 py-3 text-white">
+                                    <option value="">Selecione...</option>
+                                    <option value="1-5">1 a 5</option>
+                                    <option value="6-20">6 a 20</option>
+                                    <option value="21-50">21 a 50</option>
+                                    <option value="51-100">51 a 100</option>
+                                    <option value="100+">Mais de 100</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[13px] font-medium text-white/50 mb-1.5">Horários de pico</label>
+                                <select name="horario_pico" class="input-field w-full rounded-xl px-4 py-3 text-white">
+                                    <option value="">Selecione...</option>
+                                    <option value="manha">Manhã (8h-12h)</option>
+                                    <option value="tarde">Tarde (12h-18h)</option>
+                                    <option value="noite">Noite (18h-22h)</option>
+                                    <option value="madrugada">Madrugada (22h-8h)</option>
+                                    <option value="distribuido">Distribuído ao longo do dia</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[13px] font-medium text-white/50 mb-1.5">Atendentes humanos atuais</label>
+                                <select name="atendentes_humanos" class="input-field w-full rounded-xl px-4 py-3 text-white">
+                                    <option value="">Selecione...</option>
+                                    <option value="0">Nenhum</option>
+                                    <option value="1-3">1 a 3</option>
+                                    <option value="4-10">4 a 10</option>
+                                    <option value="11-30">11 a 30</option>
+                                    <option value="30+">Mais de 30</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">O agente deve operar em</label>
+                            <select name="operacao" class="input-field w-full rounded-xl px-4 py-3 text-white">
+                                <option value="">Selecione...</option>
+                                <option value="horario_comercial">Horário comercial apenas</option>
+                                <option value="24_7">24 horas / 7 dias</option>
+                                <option value="personalizado">Horário personalizado</option>
+                            </select>
+                        </div>
+
+                        <!-- Terminologia / Glossário -->
+                        <div class="pt-4 border-t border-white/[0.05]">
+                            <div class="flex items-center justify-between mb-3">
+                                <div>
+                                    <label class="block text-[13px] font-medium text-white/50">Glossário / Terminologia do Setor</label>
+                                    <p class="text-[11px] text-white/20 mt-1">Termos técnicos ou jargões que o agente deve conhecer</p>
+                                </div>
+                                <button type="button" onclick="addTermo()" class="text-xs text-primary/70 hover:text-primary flex items-center gap-1 transition">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                    Adicionar termo
+                                </button>
+                            </div>
+                            <div id="termoContainer" class="space-y-3">
+                                <div class="dynamic-item flex gap-3">
+                                    <input type="text" name="termo_nome[]" class="input-field w-1/3 rounded-lg px-3 py-2.5 text-white text-sm placeholder-gray-500" placeholder="Termo">
+                                    <input type="text" name="termo_definicao[]" class="input-field flex-1 rounded-lg px-3 py-2.5 text-white text-sm placeholder-gray-500" placeholder="Definição / significado">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================== -->
+            <!-- ETAPA 9: Questões Técnicas -->
+            <!-- ============================================== -->
+            <div class="form-step fade-in hidden" data-step="9">
+                <div class="section-card p-7 mb-5">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-lg section-icon flex items-center justify-center">
+                            <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-semibold text-white/90">Questões Técnicas Avançadas</h2>
+                            <p class="text-xs text-white/25">Especificações técnicas do agente</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Nível de personalização esperado</label>
+                            <select name="personalizacao" class="input-field w-full rounded-xl px-4 py-3 text-white">
+                                <option value="">Selecione...</option>
+                                <option value="basico">Básico - Respostas padrão com base em FAQ</option>
+                                <option value="intermediario">Intermediário - Personalização por perfil do cliente</option>
+                                <option value="avancado">Avançado - IA adaptativa com aprendizado contínuo</option>
+                                <option value="nao_sei">Não sei</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-3">O agente deve</label>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="capacidades[]" value="responder_duvidas" class="checkbox-custom w-5 h-5 rounded"> <span>Responder dúvidas</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="capacidades[]" value="executar_acoes" class="checkbox-custom w-5 h-5 rounded"> <span>Executar ações (agendar, consultar, etc.)</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="capacidades[]" value="interagir_sistemas" class="checkbox-custom w-5 h-5 rounded"> <span>Interagir com múltiplos sistemas</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="capacidades[]" value="coletar_dados" class="checkbox-custom w-5 h-5 rounded"> <span>Coletar e registrar dados</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="capacidades[]" value="gerar_relatorios" class="checkbox-custom w-5 h-5 rounded"> <span>Gerar relatórios</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg option-card cursor-pointer">
+                                    <input type="checkbox" name="capacidades[]" value="enviar_midia" class="checkbox-custom w-5 h-5 rounded"> <span>Enviar imagens/documentos/vídeos</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label class="block text-[13px] font-medium text-white/50 mb-1.5">Linguagem de comunicação</label>
+                                <select name="linguagem" class="input-field w-full rounded-xl px-4 py-3 text-white">
+                                    <option value="">Selecione...</option>
+                                    <option value="pt-br">Português (Brasil)</option>
+                                    <option value="pt-pt">Português (Portugal)</option>
+                                    <option value="en">Inglês</option>
+                                    <option value="es">Espanhol</option>
+                                    <option value="multi">Multilíngue</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[13px] font-medium text-white/50 mb-1.5">Suporte multilíngue?</label>
+                                <select name="multilingue" class="input-field w-full rounded-xl px-4 py-3 text-white">
+                                    <option value="">Selecione...</option>
+                                    <option value="sim">Sim</option>
+                                    <option value="nao">Não</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label class="block text-[13px] font-medium text-white/50 mb-1.5">Processar voz além de texto?</label>
+                                <select name="processar_voz" class="input-field w-full rounded-xl px-4 py-3 text-white">
+                                    <option value="">Selecione...</option>
+                                    <option value="sim">Sim</option>
+                                    <option value="nao">Não</option>
+                                    <option value="futuro">No futuro</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[13px] font-medium text-white/50 mb-1.5">Processar imagens?</label>
+                                <select name="processar_imagens" class="input-field w-full rounded-xl px-4 py-3 text-white">
+                                    <option value="">Selecione...</option>
+                                    <option value="sim">Sim</option>
+                                    <option value="nao">Não</option>
+                                    <option value="futuro">No futuro</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Expectativa de tempo de resposta do agente</label>
+                            <select name="tempo_resposta" class="input-field w-full rounded-xl px-4 py-3 text-white">
+                                <option value="">Selecione...</option>
+                                <option value="instantaneo">Instantâneo (< 3 segundos)</option>
+                                <option value="rapido">Rápido (< 10 segundos)</option>
+                                <option value="normal">Normal (< 30 segundos)</option>
+                                <option value="nao_importa">Não importa</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================== -->
+            <!-- ETAPA 10: Concorrência e Contato -->
+            <!-- ============================================== -->
+            <div class="form-step fade-in hidden" data-step="10">
+                <div class="section-card p-7 mb-5">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-lg section-icon flex items-center justify-center">
+                            <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-semibold text-white/90">Concorrência e Contato</h2>
+                            <p class="text-xs text-white/25">Informações sobre mercado e dados de contato</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Principais concorrentes</label>
+                            <textarea name="concorrentes" rows="2" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Liste seus principais concorrentes e seus sites..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Por que o cliente deve escolher vocês e não o concorrente?</label>
+                            <textarea name="porque_escolher" rows="3" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Argumentos que o agente pode usar para mostrar vantagem competitiva..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">O que NÃO falar sobre concorrentes</label>
+                            <textarea name="nao_falar_concorrentes" rows="2" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Temas sensíveis ou proibidos ao falar sobre concorrência..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Cases de sucesso / depoimentos de clientes</label>
+                            <textarea name="cases_sucesso" rows="3" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Histórias de sucesso que o agente pode mencionar para gerar credibilidade..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-white/50 mb-1.5">Expectativas adicionais ou observações</label>
+                            <textarea name="observacoes" rows="3" class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Algo mais que você gostaria de informar sobre o projeto..."></textarea>
+                        </div>
+
+                        <!-- Contato -->
+                        <div class="pt-6 border-t border-white/[0.05]">
+                            <h3 class="text-[15px] font-semibold text-white/80 mb-4">Aprovação e Contato</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div>
+                                    <label class="block text-[13px] font-medium text-white/50 mb-1.5">Nome do responsável <span class="text-primary">*</span></label>
+                                    <input type="text" name="responsavel_nome" required class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Nome completo">
+                                </div>
+                                <div>
+                                    <label class="block text-[13px] font-medium text-white/50 mb-1.5">Cargo <span class="text-primary">*</span></label>
+                                    <input type="text" name="responsavel_cargo" required class="input-field w-full rounded-lg px-4 py-2.5" placeholder="Ex: Diretor, Gerente, Proprietário...">
+                                </div>
+                                <div>
+                                    <label class="block text-[13px] font-medium text-white/50 mb-1.5">E-mail <span class="text-primary">*</span></label>
+                                    <input type="email" name="responsavel_email" required class="input-field w-full rounded-lg px-4 py-2.5" placeholder="email@empresa.com">
+                                </div>
+                                <div>
+                                    <label class="block text-[13px] font-medium text-white/50 mb-1.5">Telefone/WhatsApp <span class="text-primary">*</span></label>
+                                    <input type="tel" name="responsavel_telefone" required class="input-field w-full rounded-lg px-4 py-2.5" placeholder="(00) 00000-0000" oninput="maskPhone(this)">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit -->
+                        <div class="pt-6">
+                            <div class="option-card rounded-lg p-4 mb-6" style="border-color: rgba(232,119,46,0.15);">
+                                <p class="text-[13px] text-white/40">
+                                    <strong>Importante:</strong> Quanto mais detalhadas forem suas respostas, melhor será a qualidade do agente de IA. Todas as informações são confidenciais e usadas exclusivamente para configuração do seu agente.
+                                </p>
+                            </div>
+
+                            <label class="flex items-start gap-3 mb-6 cursor-pointer">
+                                <input type="checkbox" name="aceite_termos" required class="checkbox-custom w-5 h-5 rounded mt-0.5">
+                                <span class="text-[13px] text-white/40">Confirmo que as informações são verdadeiras e autorizo a Agência DPX a utilizá-las para configuração do agente de IA. <span class="text-primary">*</span></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="flex justify-between items-center mt-6 mb-12">
+                <button type="button" id="btnPrev" onclick="prevStep()" class="hidden px-5 py-2.5 rounded-lg btn-secondary text-white/60 font-medium text-sm flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    Anterior
+                </button>
+                <div></div>
+                <button type="button" id="btnNext" onclick="nextStep()" class="btn-primary px-6 py-2.5 rounded-lg text-white text-sm font-semibold flex items-center gap-2">
+                    Próximo
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </button>
+                <button type="submit" id="btnSubmit" class="hidden btn-primary px-6 py-2.5 rounded-lg text-white text-sm font-semibold flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Enviar Formulário
+                </button>
+            </div>
+        </form>
+
+        <!-- Success Modal -->
+        <div id="successModal" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" style="backdrop-filter: blur(8px);">
+            <div class="section-card p-8 max-w-md w-full text-center">
+                <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.15);">
+                    <svg class="w-8 h-8 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <h3 class="text-xl font-semibold text-white/90 mb-2">Formulário Enviado</h3>
+                <p class="text-white/30 text-sm mb-6 leading-relaxed">Suas informações foram recebidas com sucesso. Nossa equipe entrará em contato em breve para iniciar a implementação do seu agente de IA.</p>
+                <button onclick="document.getElementById('successModal').classList.add('hidden')" class="btn-primary px-6 py-2.5 rounded-lg text-white text-sm font-semibold">Fechar</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/[0.04] py-5 text-center text-[11px] text-white/15 font-medium">
+        <p>&copy; 2026 Agência DPX &bull; Implementação de Inteligência Artificial &bull; Todos os direitos reservados</p>
+    </footer>
+
+    <script>
+        // ==========================================
+        // STEP NAVIGATION
+        // ==========================================
+        const TOTAL_STEPS = 10;
+        let currentStep = 1;
+
+        const stepNames = [
+            'Empresa', 'Objetivos', 'Tom de Voz', 'Regras',
+            'FAQ', 'Processos', 'Canais', 'Volume',
+            'Técnico', 'Contato'
+        ];
+
+        function renderProgressBar() {
+            const bar = document.getElementById('progressBar');
+            bar.innerHTML = '';
+            for (let i = 1; i <= TOTAL_STEPS; i++) {
+                const step = document.createElement('div');
+                step.className = 'flex items-center' + (i < TOTAL_STEPS ? ' flex-1' : '');
+
+                const circle = document.createElement('div');
+                circle.className = `progress-step w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition-all ${
+                    i < currentStep ? 'completed' : i === currentStep ? 'active' : ''
+                }`;
+                circle.textContent = i < currentStep ? '\u2713' : i;
+                circle.title = stepNames[i - 1];
+                step.appendChild(circle);
+
+                if (i < TOTAL_STEPS) {
+                    const line = document.createElement('div');
+                    line.className = `progress-line h-0.5 flex-1 mx-1 transition-all ${i < currentStep ? 'active' : ''}`;
+                    step.appendChild(line);
+                }
+                bar.appendChild(step);
+            }
+            document.getElementById('progressText').textContent = `Etapa ${currentStep} de ${TOTAL_STEPS} — ${stepNames[currentStep - 1]}`;
+        }
+
+        function showStep(step) {
+            document.querySelectorAll('.form-step').forEach(el => el.classList.add('hidden'));
+            const target = document.querySelector(`[data-step="${step}"]`);
+            if (target) {
+                target.classList.remove('hidden');
+                target.classList.add('fade-in');
+            }
+
+            document.getElementById('btnPrev').classList.toggle('hidden', step === 1);
+            document.getElementById('btnNext').classList.toggle('hidden', step === TOTAL_STEPS);
+            document.getElementById('btnSubmit').classList.toggle('hidden', step !== TOTAL_STEPS);
+            document.getElementById('btnSubmit').style.display = step === TOTAL_STEPS ? 'flex' : 'none';
+            document.getElementById('btnNext').style.display = step !== TOTAL_STEPS ? 'flex' : 'none';
+
+            renderProgressBar();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function nextStep() {
+            if (currentStep < TOTAL_STEPS) {
+                currentStep++;
+                showStep(currentStep);
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                showStep(currentStep);
+            }
+        }
+
+        // ==========================================
+        // DYNAMIC FIELDS
+        // ==========================================
+        let faqCount = 1;
+        function addFAQ() {
+            faqCount++;
+            const container = document.getElementById('faqContainer');
+            const div = document.createElement('div');
+            div.className = 'dynamic-item option-card rounded-lg p-4 space-y-3';
+            div.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <span class="text-xs text-primary font-semibold">FAQ #${faqCount}</span>
+                    <button type="button" onclick="this.closest('.dynamic-item').remove()" class="text-red-400 hover:text-red-300 text-xs">Remover</button>
+                </div>
+                <input type="text" name="faq_pergunta[]" class="input-field w-full rounded-lg px-3 py-2.5 text-white text-sm placeholder-gray-500" placeholder="Pergunta que o cliente costuma fazer...">
+                <textarea name="faq_resposta[]" rows="2" class="input-field w-full rounded-lg px-3 py-2.5 text-white text-sm placeholder-gray-500" placeholder="Resposta ideal que o agente deve dar..."></textarea>
+            `;
+            container.appendChild(div);
+        }
+
+        let cenarioCount = 1;
+        function addCenario() {
+            cenarioCount++;
+            const container = document.getElementById('cenarioContainer');
+            const div = document.createElement('div');
+            div.className = 'dynamic-item option-card rounded-lg p-4 space-y-3';
+            div.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <span class="text-xs text-primary font-semibold">Cenário #${cenarioCount}</span>
+                    <button type="button" onclick="this.closest('.dynamic-item').remove()" class="text-red-400 hover:text-red-300 text-xs">Remover</button>
+                </div>
+                <input type="text" name="cenario_titulo[]" class="input-field w-full rounded-lg px-3 py-2.5 text-white text-sm placeholder-gray-500" placeholder="Título do cenário">
+                <textarea name="cenario_descricao[]" rows="2" class="input-field w-full rounded-lg px-3 py-2.5 text-white text-sm placeholder-gray-500" placeholder="Descreva a situação..."></textarea>
+                <textarea name="cenario_resposta[]" rows="2" class="input-field w-full rounded-lg px-3 py-2.5 text-white text-sm placeholder-gray-500" placeholder="Resposta/ação esperada do agente..."></textarea>
+            `;
+            container.appendChild(div);
+        }
+
+        let objecaoCount = 1;
+        function addObjecao() {
+            objecaoCount++;
+            const container = document.getElementById('objecaoContainer');
+            const div = document.createElement('div');
+            div.className = 'dynamic-item option-card rounded-lg p-4 space-y-3';
+            div.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <span class="text-xs text-primary font-semibold">Objeção #${objecaoCount}</span>
+                    <button type="button" onclick="this.closest('.dynamic-item').remove()" class="text-red-400 hover:text-red-300 text-xs">Remover</button>
+                </div>
+                <input type="text" name="objecao_cliente[]" class="input-field w-full rounded-lg px-3 py-2.5 text-white text-sm placeholder-gray-500" placeholder="O que o cliente diz...">
+                <textarea name="objecao_resposta[]" rows="2" class="input-field w-full rounded-lg px-3 py-2.5 text-white text-sm placeholder-gray-500" placeholder="Como o agente deve responder..."></textarea>
+            `;
+            container.appendChild(div);
+        }
+
+        let termoCount = 1;
+        function addTermo() {
+            termoCount++;
+            const container = document.getElementById('termoContainer');
+            const div = document.createElement('div');
+            div.className = 'dynamic-item flex gap-3';
+            div.innerHTML = `
+                <input type="text" name="termo_nome[]" class="input-field w-1/3 rounded-lg px-3 py-2.5 text-white text-sm placeholder-gray-500" placeholder="Termo">
+                <input type="text" name="termo_definicao[]" class="input-field flex-1 rounded-lg px-3 py-2.5 text-white text-sm placeholder-gray-500" placeholder="Definição / significado">
+                <button type="button" onclick="this.closest('.dynamic-item').remove()" class="text-red-400 hover:text-red-300 text-xs px-2">X</button>
+            `;
+            container.appendChild(div);
+        }
+
+        // ==========================================
+        // MATURIDADE DIGITAL (conditional fields)
+        // ==========================================
+        function toggleMaturidade() {
+            const selected = document.querySelector('input[name="maturidade_digital"]:checked');
+            const interField = document.getElementById('maturidade_intermediario_field');
+            const avancField = document.getElementById('maturidade_avancado_field');
+            interField.classList.toggle('hidden', !selected || selected.value !== 'intermediario');
+            avancField.classList.toggle('hidden', !selected || selected.value !== 'avancado');
+        }
+
+        // ==========================================
+        // FILE UPLOAD
+        // ==========================================
+        let uploadedFiles = [];
+        const MAX_FILES = 10;
+        const MAX_SIZE_MB = 50;
+
+        function handleFiles(files) {
+            for (const file of files) {
+                if (uploadedFiles.length >= MAX_FILES) {
+                    alert(`Máximo de ${MAX_FILES} arquivos permitidos.`);
+                    break;
+                }
+                const totalSize = uploadedFiles.reduce((sum, f) => sum + f.size, 0) + file.size;
+                if (totalSize > MAX_SIZE_MB * 1024 * 1024) {
+                    alert(`Tamanho total excede ${MAX_SIZE_MB}MB.`);
+                    break;
+                }
+                uploadedFiles.push(file);
+            }
+            renderFileList();
+        }
+
+        function removeFile(index) {
+            uploadedFiles.splice(index, 1);
+            renderFileList();
+        }
+
+        function renderFileList() {
+            const container = document.getElementById('fileList');
+            if (uploadedFiles.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            container.innerHTML = uploadedFiles.map((file, i) => {
+                const sizeMB = (file.size / 1024 / 1024).toFixed(1);
+                const ext = file.name.split('.').pop().toUpperCase();
+                return `<div class="dynamic-item flex items-center justify-between p-3 rounded-lg option-card">
+                    <div class="flex items-center gap-3">
+                        <span class="badge">${ext}</span>
+                        <span class="text-[13px] text-white/60">${file.name}</span>
+                        <span class="text-[11px] text-white/20">${sizeMB} MB</span>
+                    </div>
+                    <button type="button" onclick="removeFile(${i})" class="text-red-400/60 hover:text-red-400 text-xs transition">Remover</button>
+                </div>`;
+            }).join('');
+        }
+
+        // ==========================================
+        // MASKS
+        // ==========================================
+        function maskCNPJ(input) {
+            let v = input.value.replace(/\D/g, '');
+            v = v.replace(/^(\d{2})(\d)/, '$1.$2');
+            v = v.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+            v = v.replace(/\.(\d{3})(\d)/, '.$1/$2');
+            v = v.replace(/(\d{4})(\d)/, '$1-$2');
+            input.value = v.substring(0, 18);
+        }
+
+        function maskPhone(input) {
+            let v = input.value.replace(/\D/g, '');
+            v = v.replace(/^(\d{2})(\d)/, '($1) $2');
+            v = v.replace(/(\d{5})(\d)/, '$1-$2');
+            input.value = v.substring(0, 15);
+        }
+
+        // ==========================================
+        // FORM SUBMISSION
+        // ==========================================
+        function collectFormData() {
+            const form = document.getElementById('formIA');
+            const formData = new FormData(form);
+            const data = {};
+
+            // Simple fields
+            for (const [key, value] of formData.entries()) {
+                if (key.endsWith('[]')) {
+                    const cleanKey = key.replace('[]', '');
+                    if (!data[cleanKey]) data[cleanKey] = [];
+                    data[cleanKey].push(value);
+                } else {
+                    data[key] = value;
+                }
+            }
+
+            // Build FAQ array
+            if (data.faq_pergunta && data.faq_resposta) {
+                data.faq = data.faq_pergunta.map((p, i) => ({
+                    pergunta: p,
+                    resposta: data.faq_resposta[i] || ''
+                })).filter(f => f.pergunta.trim());
+                delete data.faq_pergunta;
+                delete data.faq_resposta;
+            }
+
+            // Build scenarios array
+            if (data.cenario_titulo) {
+                data.cenarios = data.cenario_titulo.map((t, i) => ({
+                    titulo: t,
+                    descricao: (data.cenario_descricao || [])[i] || '',
+                    resposta: (data.cenario_resposta || [])[i] || ''
+                })).filter(c => c.titulo.trim());
+                delete data.cenario_titulo;
+                delete data.cenario_descricao;
+                delete data.cenario_resposta;
+            }
+
+            // Build objections array
+            if (data.objecao_cliente) {
+                data.objecoes = data.objecao_cliente.map((o, i) => ({
+                    objecao: o,
+                    resposta: (data.objecao_resposta || [])[i] || ''
+                })).filter(o => o.objecao.trim());
+                delete data.objecao_cliente;
+                delete data.objecao_resposta;
+            }
+
+            // Build glossary array
+            if (data.termo_nome) {
+                data.glossario = data.termo_nome.map((t, i) => ({
+                    termo: t,
+                    definicao: (data.termo_definicao || [])[i] || ''
+                })).filter(g => g.termo.trim());
+                delete data.termo_nome;
+                delete data.termo_definicao;
+            }
+
+            // Maturidade digital - consolidate conditional fields
+            if (data.maturidade_digital === 'intermediario' && data.maturidade_ferramentas_intermediario) {
+                data.maturidade_ferramentas = data.maturidade_ferramentas_intermediario;
+            } else if (data.maturidade_digital === 'avancado' && data.maturidade_ferramentas_avancado) {
+                data.maturidade_ferramentas = data.maturidade_ferramentas_avancado;
+            }
+            delete data.maturidade_ferramentas_intermediario;
+            delete data.maturidade_ferramentas_avancado;
+
+            // Uploaded files metadata
+            if (uploadedFiles.length > 0) {
+                data.arquivos_enviados = uploadedFiles.map(f => ({
+                    nome: f.name,
+                    tipo: f.type,
+                    tamanho_mb: (f.size / 1024 / 1024).toFixed(2)
+                }));
+            }
+
+            data.versao_formulario = '2.1';
+            data.data_envio = new Date().toISOString();
+
+            return data;
+        }
+
+        async function handleSubmit(e) {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('btnSubmit');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Enviando...';
+
+            const data = collectFormData();
+
+            // Validação manual dos campos obrigatórios da etapa final
+            const camposObrigatorios = [
+                { campo: data.responsavel_nome,    label: 'Nome do responsável' },
+                { campo: data.responsavel_cargo,   label: 'Cargo' },
+                { campo: data.responsavel_email,   label: 'E-mail' },
+                { campo: data.responsavel_telefone,label: 'Telefone/WhatsApp' },
+            ];
+            const vazio = camposObrigatorios.find(c => !c.campo || !c.campo.trim());
+            if (vazio) {
+                alert(`Por favor, preencha o campo obrigatório: ${vazio.label}`);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Enviar Formulário';
+                return false;
+            }
+            if (!data.aceite_termos) {
+                alert('Você precisa confirmar as informações antes de enviar.');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Enviar Formulário';
+                return false;
+            }
+
+            const SUPABASE_URL = 'https://ajxocisljljuqkinfisw.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFqeG9jaXNsamxqdXFraW5maXN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg2MTI3MTksImV4cCI6MjA2NDE4ODcxOX0.zNF3r_KK7I7fQm4-7kBlQwwcWwyMqEp4i6cOYWxfosY';
+
+            function toBool(val) {
+                if (val === 'sim') return true;
+                if (val === 'nao') return false;
+                return null;
+            }
+
+            const payload = {
+                // Empresa
+                nome_empresa:        data.nome_empresa || null,
+                cnpj:                data.cnpj || null,
+                endereco:            data.endereco || null,
+                segmento_negocio:    data.segmento || null,
+                numero_funcionarios: data.num_colaboradores || null,
+                receita_mensal:      data.faturamento || null,
+                produtos_principais: data.produtos_servicos || null,
+                publico_alvo:        data.publico_alvo || null,
+
+                // Arrays → JSONB
+                areas_cobertura:      data.areas       || [],
+                canais_desejados:     data.canais      || [],
+                conteudo_disponivel:  data.conteudo    || [],
+                objetivos_projeto:    data.acoes_praticas || [],
+                capacidades_agente:   data.dor_principal  || [],
+                indicadores_sucesso:  data.indicadores   || [],
+                requisitos_seguranca: data.seguranca     || [],
+                armazenamento_dados:  data.armazenamento_dados ? [data.armazenamento_dados] : [],
+                formato_predominante: data.formato_dados   ? [data.formato_dados]   : [],
+                integracoes_necessarias: data.integracoes ? data.integracoes.split(',').map(s => s.trim()).filter(Boolean) : [],
+
+                // Booleans
+                tem_apis:              toBool(data.possui_apis),
+                tem_dados_sensiveis:   toBool(data.dados_sensiveis),
+                tem_manual_cultura:    toBool(data.manual_cultura),
+                tem_manual_servico:    toBool(data.manual_produtos),
+                precisa_multilingue:        toBool(data.multilingue),
+                precisa_processamento_voz:  toBool(data.processar_voz === 'sim' ? 'sim' : data.processar_voz === 'nao' ? 'nao' : null),
+                tem_gerente_negocio:        toBool(data.gerente_negocio),
+                precisa_identidade_visual_customizada: toBool(data.identidade_visual),
+                precisa_autonomia_conteudo: toBool(data.autonomia_conteudo),
+
+                // Operação
+                interacoes_mensais:  data.atendimentos_dia   || null,
+                usuarios_simultaneos: data.usuarios_simultaneos || null,
+                horarios_pico:       data.horario_pico       || null,
+                agentes_humanos:     data.atendentes_humanos || null,
+                idioma_comunicacao:  data.idioma             || null,
+                estilo_comunicacao:  data.tom_voz            || null,
+                escalabilidade:      data.escalabilidade     || null,
+                nivel_customizacao:  data.nivel_customizacao || null,
+                frequencia_relatorios: data.frequencia_relatorios || null,
+
+                // Responsável
+                nome_responsavel:     data.responsavel_nome     || null,
+                posicao:              data.responsavel_cargo    || null,
+                email:                data.responsavel_email    || null,
+                telefone_responsavel: data.responsavel_telefone || null,
+
+                // Meta
+                status:            'novo',
+                versao_formulario: 'v2.1',
+                criado_em:         new Date().toISOString(),
+                atualizado_em:     new Date().toISOString(),
+
+                // Registro completo em JSONB
+                dados: data
+            };
+
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/Formularios%20-%20IA`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errText = await response.text();
+                    throw new Error(`Erro ${response.status}: ${errText}`);
+                }
+
+            } catch (error) {
+                console.error('Erro ao enviar para Supabase:', error);
+                localStorage.setItem('dpx_form_fallback_' + Date.now(), JSON.stringify(payload));
+                alert('Ocorreu um erro ao enviar. Dados salvos localmente. Tente novamente ou contate a equipe DPX.');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Enviar Formulário';
+                return false;
+            }
+
+            document.getElementById('successModal').classList.remove('hidden');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Enviar Formulário';
+            return false;
+        }
+
+        // ==========================================
+        // INIT
+        // ==========================================
+        showStep(1);
+    </script>
+</body>
+</html>

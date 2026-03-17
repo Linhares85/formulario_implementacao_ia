@@ -1,0 +1,10 @@
+# Claude Code internals
+.claude/
+
+# AIOS framework
+aios-core-main/
+
+# Misc
+skills-lock.json
+*.psd
+*.zip

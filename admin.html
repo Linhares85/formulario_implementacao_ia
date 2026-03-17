@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Admin | Agência DPX</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        surface: { 700: '#1e1e2e', 800: '#151521', 900: '#0c0c14', 950: '#08080e' },
+                        primary: { DEFAULT: '#e8772e', light: '#f0944d', dark: '#c75f1a' },
+                        accent: '#e8772e',
+                        muted: { DEFAULT: '#6b6b80', light: '#8b8ba0' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { scrollbar-width: thin; scrollbar-color: #2a2a3e #0c0c14; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #0c0c14; }
+        ::-webkit-scrollbar-thumb { background: #2a2a3e; border-radius: 3px; }
+        body { background: #0c0c14; }
+
+        .card { background: #111119; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; }
+        .card:hover { border-color: rgba(255,255,255,0.1); }
+
+        .btn-action {
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary-sm {
+            background: linear-gradient(135deg, #e8772e, #c75f1a);
+            color: white;
+        }
+        .btn-primary-sm:hover { box-shadow: 0 4px 16px rgba(232,119,46,0.3); }
+
+        .btn-ghost {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: #b0b0c0;
+        }
+        .btn-ghost:hover { background: rgba(255,255,255,0.08); color: white; }
+
+        .form-item {
+            padding: 14px 16px;
+            border-radius: 10px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .form-item:hover { background: rgba(255,255,255,0.03); }
+        .form-item.active {
+            background: rgba(232,119,46,0.06);
+            border-color: rgba(232,119,46,0.2);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .badge-local { background: rgba(99,102,241,0.15); color: #818cf8; }
+        .badge-supabase { background: rgba(52,211,153,0.15); color: #34d399; }
+        .badge-novo { background: rgba(59,130,246,0.15); color: #60a5fa; }
+        .badge-analise { background: rgba(251,191,36,0.15); color: #fbbf24; }
+        .badge-concluido { background: rgba(52,211,153,0.15); color: #34d399; }
+
+        .collapse-header {
+            cursor: pointer;
+            padding: 12px 16px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+        .collapse-header:hover { background: rgba(255,255,255,0.03); }
+        .collapse-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+        .collapse-content.open { max-height: 2000px; }
+
+        .metric-card {
+            background: #111119;
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 14px;
+            padding: 20px 24px;
+        }
+
+        .score-bar { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.06); overflow: hidden; }
+        .score-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .animate-fade-in { animation: fadeIn 0.4s ease; }
+
+        .detail-row { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        .detail-row:last-child { border-bottom: none; }
+    </style>
+</head>
+<body class="min-h-screen font-sans text-white">
+
+    <!-- Header -->
+    <header class="border-b border-white/5 bg-surface-800/80 backdrop-blur-sm sticky top-0 z-50">
+        <div class="max-w-[1600px] mx-auto px-6 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <a href="index.html" class="flex items-center gap-2 text-muted hover:text-primary text-sm transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    Início
+                </a>
+                <div class="w-px h-5 bg-white/10"></div>
+                <div class="flex items-center gap-2">
+                    <svg class="w-8 h-8" viewBox="15 20 200 222" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd">
+                        <path fill="#e8772e" fill-rule="nonzero" d="M45.47 56.98l59.22 -34.19 19.74 11.4 -59.22 34.19 -19.74 -11.4zm78.96 45.58l-39.48 -22.79 78.95 -45.59 -59.22 -34.19 -98.7 56.98 98.7 56.98 19.74 -11.4z"/>
+                        <path fill="#e8772e" fill-rule="nonzero" d="M19.74 169.95l0.01 -68.38 51.05 29.48 8.17 14.15 -0.01 49.51c0,0 -8.18,4.71 -8.17,4.72l-51.05 -29.47zm78.95 45.59l0.01 -68.38c0,0 -19.72,-34.18 -19.73,-34.19l-78.95 -45.6 -0.01 113.97c0,0 78.94,45.59 78.95,45.59l19.74 -11.39z"/>
+                        <polygon fill="#e8772e" fill-rule="nonzero" points="209.38,67.36 197.12,60.85 203.05,57.46 167.31,52.99 171.41,75.59 177.27,72.23 189.64,78.75 189.63,78.75 189.63,114.9 181.46,129.06 138.59,153.81 138.57,153.8 124.84,168.34 120.81,175.25 120.31,176.04 110.68,192.72 110.68,238.31 130.42,226.91 130.42,190.76 138.59,176.61 181.46,151.85 181.47,151.87 181.53,151.78 199.51,130.04 199.51,130.04 209.38,112.94"/>
+                        <polygon fill="#e8772e" fill-rule="nonzero" points="122.21,166.12 135.51,152.03 130.42,149.09 130.42,112.94 110.68,124.34 110.68,169.93 117.58,173.92 117.87,173.46"/>
+                        <polygon fill="#e8772e" fill-rule="nonzero" points="184.49,153.6 189.64,156.58 189.64,192.72 209.37,181.33 209.37,135.74 202.53,131.79"/>
+                    </svg>
+                    <span class="font-semibold text-sm">Painel Administrativo</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <span id="userEmail" class="text-muted text-sm"></span>
+                <button onclick="handleLogout()" class="btn-action btn-ghost text-xs">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                    </svg>
+                    Sair
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-[1600px] mx-auto px-6 py-6">
+
+        <!-- Action Bar -->
+        <div class="flex flex-wrap items-center gap-3 mb-6">
+            <button onclick="syncLocalStorage()" class="btn-action btn-ghost">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Sincronizar LocalStorage
+            </button>
+            <button onclick="loadFormularios()" class="btn-action btn-ghost">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Recarregar
+            </button>
+            <div class="flex-1"></div>
+            <button onclick="exportCSV()" class="btn-action btn-ghost">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                CSV
+            </button>
+            <button onclick="exportXLSX()" class="btn-action btn-primary-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                XLSX
+            </button>
+        </div>
+
+        <!-- Metric Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="metric-card">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-muted text-xs">Total de Formulários</p>
+                        <p id="metricTotal" class="text-2xl font-bold text-white">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-muted text-xs">Empresas Únicas</p>
+                        <p id="metricEmpresas" class="text-2xl font-bold text-white">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-muted text-xs">Receita Total Estimada</p>
+                        <p id="metricReceita" class="text-2xl font-bold text-primary">R$ 0</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main 2-column layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+
+            <!-- Left: Form List -->
+            <div class="lg:col-span-2">
+                <div class="card p-4">
+                    <h2 class="text-sm font-semibold text-white mb-4 px-2 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+                        </svg>
+                        Formulários Recebidos
+                        <span id="formCount" class="text-muted text-xs font-normal">(0)</span>
+                    </h2>
+                    <div id="formList" class="space-y-2 max-h-[calc(100vh-340px)] overflow-y-auto pr-1">
+                        <!-- Form items rendered here -->
+                        <div class="text-center py-12 text-muted text-sm">
+                            <svg class="w-12 h-12 mx-auto mb-3 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                            </svg>
+                            Nenhum formulário encontrado
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Detail Panel -->
+            <div class="lg:col-span-3">
+                <div class="card p-6" id="detailPanel">
+                    <div id="detailEmpty" class="text-center py-20 text-muted">
+                        <svg class="w-16 h-16 mx-auto mb-4 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                        <p class="text-sm">Selecione um formulário para ver os detalhes</p>
+                    </div>
+                    <div id="detailContent" class="hidden animate-fade-in">
+                        <!-- Header -->
+                        <div class="flex items-center justify-between mb-6">
+                            <h2 id="detailTitle" class="text-lg font-semibold text-white"></h2>
+                            <div class="flex items-center gap-2">
+                                <button onclick="viewFullJSON()" class="btn-action btn-ghost text-xs" title="Ver JSON completo">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    </svg>
+                                    Visualizar
+                                </button>
+                                <button onclick="deleteFormulario()" class="btn-action text-xs bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    </svg>
+                                    Excluir
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Collapsible Sections -->
+                        <div id="detailSections" class="space-y-2">
+                            <!-- Sections rendered dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- JSON Modal -->
+    <div id="jsonModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="bg-surface-800 border border-white/10 rounded-2xl max-w-3xl w-full max-h-[80vh] overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-white/5">
+                <h3 class="font-semibold text-sm">Dados Completos (JSON)</h3>
+                <button onclick="closeJsonModal()" class="text-muted hover:text-white transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <pre id="jsonContent" class="p-6 text-xs text-emerald-400 overflow-auto max-h-[60vh] font-mono leading-relaxed"></pre>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // SUPABASE CONFIG
+        // ==========================================
+        const SUPABASE_URL = 'https://ajxocisljljuqkinfisw.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFqeG9jaXNsamxqdXFraW5maXN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIxNjI0MDQsImV4cCI6MjA1NzczODQwNH0.59bJxXH7x3YURZ9xjJOS8rfsKAQl3C5N3x6Z2SX6fMg';
+
+        let supabaseClient = null;
+        let currentUser = null;
+        let formularios = [];
+        let selectedIndex = -1;
+
+        try {
+            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch (e) {
+            console.warn('Supabase não disponível');
+        }
+
+        // ==========================================
+        // AUTH CHECK
+        // ==========================================
+        (async () => {
+            let authenticated = false;
+
+            if (supabaseClient) {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (session) {
+                    currentUser = session.user;
+                    authenticated = true;
+                }
+            }
+
+            // Fallback: check localStorage session
+            if (!authenticated) {
+                const offlineSession = localStorage.getItem('dpx_admin_session');
+                if (offlineSession) {
+                    const parsed = JSON.parse(offlineSession);
+                    // Session valid for 24h
+                    if (Date.now() - parsed.timestamp < 86400000) {
+                        currentUser = parsed.user;
+                        authenticated = true;
+                    }
+                }
+            }
+
+            if (!authenticated) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            document.getElementById('userEmail').textContent = currentUser.email;
+            loadFormularios();
+        })();
+
+        // ==========================================
+        // LOGOUT
+        // ==========================================
+        async function handleLogout() {
+            if (supabaseClient) {
+                await supabaseClient.auth.signOut();
+            }
+            localStorage.removeItem('dpx_admin_session');
+            window.location.href = 'index.html';
+        }
+
+        // ==========================================
+        // SCORE DE COMPLEXIDADE (0-100)
+        // ==========================================
+        function calcularScore(dados) {
+            let score = 0;
+            const d = dados || {};
+
+            // Canais (0-20 pts)
+            const canais = d.canais_atendimento || d.canais || [];
+            if (Array.isArray(canais)) {
+                score += Math.min(canais.length * 4, 20);
+            }
+
+            // Integrações (0-15 pts)
+            const integracoes = d.integracoes_necessarias || d.integracoes || [];
+            if (Array.isArray(integracoes)) {
+                score += Math.min(integracoes.length * 5, 15);
+            }
+
+            // Volume atendimentos (0-15 pts)
+            const volume = d.volume_atendimentos || d.volume_mensal || '';
+            if (volume.includes('1000') || volume.includes('alto') || volume.includes('+')) score += 15;
+            else if (volume.includes('500') || volume.includes('médio')) score += 10;
+            else if (volume.includes('100') || volume.includes('baixo')) score += 5;
+
+            // Personalização (0-15 pts)
+            const personalizacao = d.nivel_personalizacao || d.personalizacao || '';
+            if (personalizacao.includes('alto') || personalizacao.includes('total')) score += 15;
+            else if (personalizacao.includes('médio') || personalizacao.includes('moderado')) score += 10;
+            else if (personalizacao.includes('básico')) score += 5;
+
+            // Multilingue (0-10 pts)
+            if (d.multilingue === true || d.multilinguagem === 'sim' || d.idiomas?.length > 1) score += 10;
+
+            // Voz (0-10 pts)
+            if (d.atendimento_voz === true || d.voz === 'sim' || (Array.isArray(canais) && canais.some(c => typeof c === 'string' && c.toLowerCase().includes('voz')))) score += 10;
+
+            // Complexidade do FAQ (0-15 pts)
+            const faq = d.faq || d.perguntas_frequentes || [];
+            if (Array.isArray(faq)) {
+                score += Math.min(faq.length * 3, 15);
+            }
+
+            return Math.min(score, 100);
+        }
+
+        // ==========================================
+        // ESTIMATIVA DE PREÇO
+        // ==========================================
+        function calcularPreco(dados) {
+            let preco = 5000; // Base
+            const d = dados || {};
+
+            // Faturamento
+            const fat = d.faturamento_mensal || d.faturamento || '';
+            if (fat.includes('1M') || fat.includes('milhão') || fat.includes('1.000.000')) preco *= 2.5;
+            else if (fat.includes('500') || fat.includes('500K')) preco *= 2;
+            else if (fat.includes('100') || fat.includes('100K')) preco *= 1.5;
+
+            // Colaboradores
+            const colab = parseInt(d.num_colaboradores || d.colaboradores || d.funcionarios || '0');
+            if (colab > 100) preco *= 1.5;
+            else if (colab > 50) preco *= 1.3;
+            else if (colab > 10) preco *= 1.1;
+
+            // Canais
+            const canais = d.canais_atendimento || d.canais || [];
+            if (Array.isArray(canais)) preco += canais.length * 500;
+
+            // Integrações
+            const integracoes = d.integracoes_necessarias || d.integracoes || [];
+            if (Array.isArray(integracoes)) preco += integracoes.length * 800;
+
+            // Score de complexidade como fator
+            const score = calcularScore(d);
+            if (score > 80) preco *= 1.4;
+            else if (score > 60) preco *= 1.2;
+            else if (score > 30) preco *= 1.1;
+
+            return Math.round(preco);
+        }
+
+        // ==========================================
+        // LOAD FORMULARIOS
+        // ==========================================
+        async function loadFormularios() {
+            formularios = [];
+
+            // 1. Load from Supabase
+            if (supabaseClient) {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('formularios_ia')
+                        .select('*')
+                        .order('created_at', { ascending: false });
+
+                    if (!error && data) {
+                        data.forEach(row => {
+                            formularios.push({
+                                id: row.id,
+                                source: 'supabase',
+                                created_at: row.created_at,
+                                dados: row.dados || row,
+                                nome_empresa: row.nome_empresa || row.dados?.empresa?.nome || 'Sem nome',
+                                responsavel_nome: row.responsavel_nome || row.dados?.contato?.nome || '',
+                                responsavel_email: row.responsavel_email || row.dados?.contato?.email || '',
+                                status: row.status || 'novo',
+                                score: row.score_complexidade || calcularScore(row.dados),
+                                valor: row.valor_estimado || calcularPreco(row.dados)
+                            });
+                        });
+                    }
+                } catch (e) {
+                    console.warn('Erro ao carregar do Supabase:', e);
+                }
+            }
+
+            // 2. Load from LocalStorage
+            loadLocalStorage();
+
+            // 3. Update UI
+            renderFormList();
+            updateMetrics();
+        }
+
+        function loadLocalStorage() {
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('formulario_') || key.startsWith('dpx_form_')) {
+                    try {
+                        const data = JSON.parse(localStorage.getItem(key));
+                        // Avoid duplicates (check by empresa name + email)
+                        const nome = data?.empresa?.nome || data?.nome_empresa || 'Sem nome';
+                        const email = data?.contato?.email || data?.responsavel_email || '';
+                        const isDuplicate = formularios.some(f =>
+                            f.nome_empresa === nome && f.responsavel_email === email && f.source === 'supabase'
+                        );
+                        if (!isDuplicate) {
+                            formularios.push({
+                                id: key,
+                                source: 'local',
+                                created_at: data.created_at || data.timestamp || new Date().toISOString(),
+                                dados: data,
+                                nome_empresa: nome,
+                                responsavel_nome: data?.contato?.nome || data?.responsavel_nome || '',
+                                responsavel_email: email,
+                                status: data.status || 'novo',
+                                score: calcularScore(data),
+                                valor: calcularPreco(data)
+                            });
+                        }
+                    } catch (e) { /* skip invalid */ }
+                }
+            }
+        }
+
+        // ==========================================
+        // SYNC LOCALSTORAGE → SUPABASE
+        // ==========================================
+        async function syncLocalStorage() {
+            if (!supabaseClient) {
+                alert('Supabase não está configurado. Sincronização não disponível.');
+                return;
+            }
+
+            const localForms = formularios.filter(f => f.source === 'local');
+            if (localForms.length === 0) {
+                alert('Nenhum formulário local para sincronizar.');
+                return;
+            }
+
+            let synced = 0;
+            for (const form of localForms) {
+                try {
+                    const { error } = await supabaseClient.from('formularios_ia').insert({
+                        dados: form.dados,
+                        nome_empresa: form.nome_empresa,
+                        responsavel_nome: form.responsavel_nome,
+                        responsavel_email: form.responsavel_email,
+                        status: form.status,
+                        score_complexidade: form.score,
+                        valor_estimado: form.valor,
+                        versao_formulario: 'v2.0'
+                    });
+                    if (!error) {
+                        localStorage.removeItem(form.id);
+                        synced++;
+                    }
+                } catch (e) {
+                    console.error('Erro ao sincronizar:', e);
+                }
+            }
+
+            alert(`${synced} de ${localForms.length} formulários sincronizados com sucesso!`);
+            loadFormularios();
+        }
+
+        // ==========================================
+        // RENDER
+        // ==========================================
+        function renderFormList() {
+            const container = document.getElementById('formList');
+            document.getElementById('formCount').textContent = `(${formularios.length})`;
+
+            if (formularios.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-muted text-sm">
+                        <svg class="w-12 h-12 mx-auto mb-3 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                        </svg>
+                        Nenhum formulário encontrado
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = formularios.map((f, i) => {
+                const date = new Date(f.created_at);
+                const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                const badgeClass = f.source === 'supabase' ? 'badge-supabase' : 'badge-local';
+                const badgeText = f.source === 'supabase' ? 'Supabase' : 'Local';
+                const scoreLabel = f.score <= 30 ? 'Simples' : f.score <= 60 ? 'Moderado' : f.score <= 80 ? 'Complexo' : 'Enterprise';
+                const scoreColor = f.score <= 30 ? '#34d399' : f.score <= 60 ? '#fbbf24' : f.score <= 80 ? '#f97316' : '#ef4444';
+
+                return `
+                    <div class="form-item ${i === selectedIndex ? 'active' : ''}" onclick="selectFormulario(${i})">
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-white truncate">${f.nome_empresa}</p>
+                                <p class="text-xs text-muted truncate mt-0.5">${f.responsavel_nome}</p>
+                            </div>
+                            <span class="badge ${badgeClass} ml-2 flex-shrink-0">${badgeText}</span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs text-muted">
+                            <div class="flex items-center gap-3">
+                                <span>${f.responsavel_email || '—'}</span>
+                            </div>
+                            <span>${dateStr}</span>
+                        </div>
+                        <div class="flex items-center justify-between mt-2">
+                            <div class="flex items-center gap-2">
+                                <div class="score-bar w-16">
+                                    <div class="score-fill" style="width: ${f.score}%; background: ${scoreColor}"></div>
+                                </div>
+                                <span class="text-xs" style="color: ${scoreColor}">${scoreLabel}</span>
+                            </div>
+                            <span class="text-xs font-medium text-primary">R$ ${f.valor.toLocaleString('pt-BR')}</span>
+                        </div>
+                    </div>`;
+            }).join('');
+        }
+
+        function updateMetrics() {
+            document.getElementById('metricTotal').textContent = formularios.length;
+
+            const empresas = new Set(formularios.map(f => f.nome_empresa.toLowerCase()));
+            document.getElementById('metricEmpresas').textContent = empresas.size;
+
+            const receita = formularios.reduce((acc, f) => acc + f.valor, 0);
+            document.getElementById('metricReceita').textContent = `R$ ${receita.toLocaleString('pt-BR')}`;
+        }
+
+        // ==========================================
+        // SELECT & DETAIL
+        // ==========================================
+        function selectFormulario(index) {
+            selectedIndex = index;
+            renderFormList();
+            renderDetail(formularios[index]);
+        }
+
+        function renderDetail(form) {
+            document.getElementById('detailEmpty').classList.add('hidden');
+            document.getElementById('detailContent').classList.remove('hidden');
+            document.getElementById('detailTitle').textContent = form.nome_empresa;
+
+            const d = form.dados || {};
+            const sections = [];
+
+            // Helper to extract nested or flat values
+            const get = (obj, ...paths) => {
+                for (const p of paths) {
+                    const keys = p.split('.');
+                    let val = obj;
+                    for (const k of keys) { val = val?.[k]; }
+                    if (val !== undefined && val !== null && val !== '') return val;
+                }
+                return null;
+            };
+
+            // Section: Informações da Empresa
+            sections.push({
+                title: 'Informações da Empresa',
+                icon: '🏢',
+                fields: [
+                    ['Nome', get(d, 'empresa.nome', 'nome_empresa') || form.nome_empresa],
+                    ['CNPJ', get(d, 'empresa.cnpj', 'cnpj')],
+                    ['Segmento', get(d, 'empresa.segmento', 'segmento')],
+                    ['Funcionários', get(d, 'empresa.funcionarios', 'num_colaboradores', 'colaboradores')],
+                    ['Faturamento', get(d, 'empresa.faturamento', 'faturamento_mensal', 'faturamento')],
+                    ['Descrição', get(d, 'empresa.descricao', 'descricao_empresa')],
+                ]
+            });
+
+            // Section: Contato
+            sections.push({
+                title: 'Contato',
+                icon: '👤',
+                fields: [
+                    ['Responsável', get(d, 'contato.nome', 'responsavel_nome') || form.responsavel_nome],
+                    ['Email', get(d, 'contato.email', 'responsavel_email') || form.responsavel_email],
+                    ['Telefone', get(d, 'contato.telefone', 'telefone')],
+                    ['Cargo', get(d, 'contato.cargo', 'cargo')],
+                ]
+            });
+
+            // Section: Estimativa de Preço
+            const scoreLabel = form.score <= 30 ? 'Simples' : form.score <= 60 ? 'Moderado' : form.score <= 80 ? 'Complexo' : 'Enterprise';
+            const scoreColor = form.score <= 30 ? '#34d399' : form.score <= 60 ? '#fbbf24' : form.score <= 80 ? '#f97316' : '#ef4444';
+            sections.push({
+                title: 'Estimativa de Preço',
+                icon: '💰',
+                fields: [
+                    ['Valor Estimado', `R$ ${form.valor.toLocaleString('pt-BR')}`],
+                    ['Score de Complexidade', `${form.score}/100 (${scoreLabel})`],
+                ],
+                extra: `<div class="mt-2"><div class="score-bar w-full"><div class="score-fill" style="width: ${form.score}%; background: ${scoreColor}"></div></div></div>`
+            });
+
+            // Section: Diagnóstico de Dor
+            sections.push({
+                title: 'Diagnóstico de Dor',
+                icon: '🎯',
+                fields: [
+                    ['Principais Dores', get(d, 'diagnostico_dor', 'dores', 'principais_dores')],
+                    ['Impacto', get(d, 'impacto_dor', 'impacto')],
+                    ['Urgência', get(d, 'urgencia', 'nivel_urgencia')],
+                ]
+            });
+
+            // Section: Maturidade Digital
+            sections.push({
+                title: 'Maturidade Digital',
+                icon: '📊',
+                fields: [
+                    ['Nível', get(d, 'maturidade_digital', 'maturidade', 'nivel_maturidade')],
+                    ['Ferramentas Atuais', get(d, 'ferramentas_atuais', 'ferramentas')],
+                    ['Automações Existentes', get(d, 'automacoes_existentes', 'automacoes')],
+                ]
+            });
+
+            // Section: Ações Práticas
+            sections.push({
+                title: 'Ações Práticas',
+                icon: '⚡',
+                fields: [
+                    ['Ações Desejadas', get(d, 'acoes_praticas', 'acoes', 'acoes_agente')],
+                ]
+            });
+
+            // Section: Expectativas
+            sections.push({
+                title: 'Expectativas',
+                icon: '🎯',
+                fields: [
+                    ['Expectativas', get(d, 'expectativas', 'expectativa_cliente')],
+                    ['Prazo Desejado', get(d, 'prazo_desejado', 'prazo')],
+                    ['Orçamento', get(d, 'orcamento_previsto', 'orcamento')],
+                ]
+            });
+
+            // Section: Tom de Voz
+            sections.push({
+                title: 'Tom de Voz',
+                icon: '🗣️',
+                fields: [
+                    ['Tom', get(d, 'tom_voz', 'tom', 'personalidade')],
+                    ['Exemplos', get(d, 'exemplos_tom', 'exemplos_comunicacao')],
+                ]
+            });
+
+            // Section: Regras de Negócio
+            sections.push({
+                title: 'Regras de Negócio',
+                icon: '📋',
+                fields: [
+                    ['Regras', get(d, 'regras_negocio', 'regras', 'restricoes')],
+                    ['Restrições', get(d, 'restricoes_negocio', 'limitacoes')],
+                ]
+            });
+
+            // Section: FAQ
+            sections.push({
+                title: 'FAQ',
+                icon: '❓',
+                fields: [
+                    ['Perguntas Frequentes', get(d, 'faq', 'perguntas_frequentes')],
+                ]
+            });
+
+            // Section: Canais e Integrações
+            sections.push({
+                title: 'Canais e Integrações',
+                icon: '🔗',
+                fields: [
+                    ['Canais de Atendimento', get(d, 'canais_atendimento', 'canais')],
+                    ['Integrações', get(d, 'integracoes_necessarias', 'integracoes')],
+                ]
+            });
+
+            // Section: Volume e Operação
+            sections.push({
+                title: 'Volume e Operação',
+                icon: '📈',
+                fields: [
+                    ['Volume Mensal', get(d, 'volume_atendimentos', 'volume_mensal')],
+                    ['Horário Operação', get(d, 'horario_operacao', 'horario_funcionamento')],
+                    ['Equipe Atual', get(d, 'equipe_atual', 'tamanho_equipe')],
+                ]
+            });
+
+            // Section: Questões Técnicas
+            sections.push({
+                title: 'Questões Técnicas',
+                icon: '⚙️',
+                fields: [
+                    ['Sistemas Atuais', get(d, 'sistemas_atuais', 'sistemas')],
+                    ['APIs Disponíveis', get(d, 'apis_disponiveis', 'apis')],
+                    ['Requisitos Técnicos', get(d, 'requisitos_tecnicos', 'requisitos')],
+                ]
+            });
+
+            // Render sections
+            const sectionsHtml = sections.map((section, i) => {
+                const fieldsHtml = section.fields
+                    .filter(([, val]) => val !== null && val !== undefined && val !== '')
+                    .map(([label, val]) => {
+                        let displayVal = val;
+                        if (Array.isArray(val)) {
+                            displayVal = val.map(v => typeof v === 'object' ? JSON.stringify(v) : v).join(', ');
+                        } else if (typeof val === 'object') {
+                            displayVal = JSON.stringify(val, null, 2);
+                        }
+                        return `<div class="detail-row flex justify-between items-start gap-4">
+                            <span class="text-muted text-xs flex-shrink-0">${label}</span>
+                            <span class="text-sm text-white text-right">${displayVal}</span>
+                        </div>`;
+                    }).join('');
+
+                if (!fieldsHtml && !section.extra) return '';
+
+                return `
+                    <div class="border border-white/5 rounded-xl overflow-hidden">
+                        <div class="collapse-header flex items-center justify-between" onclick="toggleCollapse(this)">
+                            <div class="flex items-center gap-2">
+                                <span>${section.icon}</span>
+                                <span class="text-sm font-medium text-white">${section.title}</span>
+                            </div>
+                            <svg class="w-4 h-4 text-muted transition-transform collapse-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </div>
+                        <div class="collapse-content ${i < 3 ? 'open' : ''}" style="${i < 3 ? 'max-height: 2000px' : ''}">
+                            <div class="px-4 pb-4">
+                                ${fieldsHtml}
+                                ${section.extra || ''}
+                            </div>
+                        </div>
+                    </div>`;
+            }).filter(Boolean).join('');
+
+            document.getElementById('detailSections').innerHTML = sectionsHtml;
+        }
+
+        function toggleCollapse(header) {
+            const content = header.nextElementSibling;
+            const arrow = header.querySelector('.collapse-arrow');
+            content.classList.toggle('open');
+            if (content.classList.contains('open')) {
+                content.style.maxHeight = content.scrollHeight + 'px';
+                arrow.style.transform = 'rotate(180deg)';
+            } else {
+                content.style.maxHeight = '0';
+                arrow.style.transform = 'rotate(0)';
+            }
+        }
+
+        // ==========================================
+        // ACTIONS
+        // ==========================================
+        function viewFullJSON() {
+            if (selectedIndex < 0) return;
+            const form = formularios[selectedIndex];
+            document.getElementById('jsonContent').textContent = JSON.stringify(form.dados, null, 2);
+            document.getElementById('jsonModal').classList.remove('hidden');
+        }
+
+        function closeJsonModal() {
+            document.getElementById('jsonModal').classList.add('hidden');
+        }
+
+        async function deleteFormulario() {
+            if (selectedIndex < 0) return;
+            const form = formularios[selectedIndex];
+
+            if (!confirm(`Deseja excluir o formulário de "${form.nome_empresa}"?`)) return;
+
+            if (form.source === 'supabase' && supabaseClient) {
+                const { error } = await supabaseClient
+                    .from('formularios_ia')
+                    .delete()
+                    .eq('id', form.id);
+                if (error) {
+                    alert('Erro ao excluir do Supabase: ' + error.message);
+                    return;
+                }
+            } else if (form.source === 'local') {
+                localStorage.removeItem(form.id);
+            }
+
+            formularios.splice(selectedIndex, 1);
+            selectedIndex = -1;
+            document.getElementById('detailEmpty').classList.remove('hidden');
+            document.getElementById('detailContent').classList.add('hidden');
+            renderFormList();
+            updateMetrics();
+        }
+
+        // ==========================================
+        // EXPORT
+        // ==========================================
+        function getExportData() {
+            return formularios.map(f => ({
+                'Empresa': f.nome_empresa,
+                'Responsável': f.responsavel_nome,
+                'Email': f.responsavel_email,
+                'Data': new Date(f.created_at).toLocaleDateString('pt-BR'),
+                'Fonte': f.source,
+                'Status': f.status,
+                'Score': f.score,
+                'Valor Estimado': f.valor,
+            }));
+        }
+
+        function exportCSV() {
+            const data = getExportData();
+            if (data.length === 0) { alert('Nenhum dado para exportar'); return; }
+
+            const headers = Object.keys(data[0]);
+            const csv = [
+                headers.join(';'),
+                ...data.map(row => headers.map(h => `"${row[h] || ''}"`).join(';'))
+            ].join('\n');
+
+            downloadFile(csv, 'formularios_dpx.csv', 'text/csv;charset=utf-8');
+        }
+
+        function exportXLSX() {
+            const data = getExportData();
+            if (data.length === 0) { alert('Nenhum dado para exportar'); return; }
+
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Formulários');
+
+            // Style header
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let c = range.s.c; c <= range.e.c; c++) {
+                const addr = XLSX.utils.encode_cell({ r: 0, c });
+                if (ws[addr]) ws[addr].s = { font: { bold: true } };
+            }
+
+            // Column widths
+            ws['!cols'] = [
+                { wch: 30 }, { wch: 25 }, { wch: 30 }, { wch: 12 },
+                { wch: 10 }, { wch: 12 }, { wch: 8 }, { wch: 15 }
+            ];
+
+            XLSX.writeFile(wb, 'formularios_dpx.xlsx');
+        }
+
+        function downloadFile(content, filename, type) {
+            const BOM = '\uFEFF';
+            const blob = new Blob([BOM + content], { type });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+
+</body>
+</html>
