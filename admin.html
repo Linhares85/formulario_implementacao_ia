@@ -1151,15 +1151,16 @@
                 doc.setTextColor(30, 30, 46);
                 const lines = doc.splitTextToSize(String(value), contentWidth);
                 lines.forEach((line, li) => {
-                    if (li > 0) checkPage(4.5);
+                    if (li > 0) checkPage(5);
                     doc.text(line, contentStart, y);
-                    if (li < lines.length - 1) y += 4.5;
+                    if (li < lines.length - 1) y += 5;
                 });
-                y += 6;
+                y += 4;
                 // Draw subtle separator line
-                doc.setDrawColor(230, 230, 235);
-                doc.setLineWidth(0.2);
-                doc.line(margin + 2, y - 2.5, pageWidth - margin - 2, y - 2.5);
+                doc.setDrawColor(225, 225, 232);
+                doc.setLineWidth(0.15);
+                doc.line(margin + 2, y, pageWidth - margin - 2, y);
+                y += 5;
             };
 
             // === Draw rows for a section ===
