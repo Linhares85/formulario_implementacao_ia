@@ -806,6 +806,24 @@
                 ]
             });
 
+            // Section: Arquivos Anexados
+            const arquivos = get(d, 'arquivos_enviados');
+            if (arquivos && Array.isArray(arquivos) && arquivos.length > 0) {
+                const arquivosFields = arquivos.map(arq => {
+                    const hasUrl = arq.url && arq.url.startsWith('http');
+                    const downloadLink = hasUrl
+                        ? `<a href="${arq.url}" target="_blank" download class="text-primary hover:text-primary-light underline">${arq.nome}</a> (${arq.tamanho_mb} MB)`
+                        : `${arq.nome} (${arq.tamanho_mb} MB) — <span class="text-red-400 text-xs">sem link</span>`;
+                    return [arq.nome.split('.').pop().toUpperCase(), downloadLink];
+                });
+                sections.push({
+                    title: 'Arquivos Anexados',
+                    icon: '📎',
+                    fields: arquivosFields,
+                    extra: `<div class="mt-2"><button onclick="downloadAllAttachments()" class="btn-action btn-primary-sm text-xs">Baixar Todos os Arquivos</button></div>`
+                });
+            }
+
             // Render sections
             const sectionsHtml = sections.map((section, i) => {
                 const fieldsHtml = section.fields
@@ -864,6 +882,28 @@
         // ==========================================
         // ACTIONS
         // ==========================================
+        function downloadAllAttachments() {
+            if (selectedIndex < 0) return;
+            const form = formularios[selectedIndex];
+            const d = form.dados || {};
+            const arquivos = d.arquivos_enviados;
+            if (!arquivos || !Array.isArray(arquivos)) {
+                alert('Nenhum arquivo anexado neste formulário.');
+                return;
+            }
+            arquivos.forEach(arq => {
+                if (arq.url && arq.url.startsWith('http')) {
+                    const link = document.createElement('a');
+                    link.href = arq.url;
+                    link.download = arq.nome;
+                    link.target = '_blank';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            });
+        }
+
         function viewFullJSON() {
             if (selectedIndex < 0) return;
             const form = formularios[selectedIndex];
@@ -1006,7 +1046,78 @@
                 if (v === null || v === undefined || v === '') return '—';
                 if (Array.isArray(v)) return v.map(i => typeof i === 'object' ? JSON.stringify(i) : i).join(', ');
                 if (typeof v === 'object') return JSON.stringify(v);
+                if (v === 'sim') return 'Sim';
+                if (v === 'nao') return 'Não';
                 return String(v);
+            };
+
+            // Format FAQ/Scenarios/Objections/Glossary nicely
+            const fmtFaq = (arr) => {
+                if (!arr || !Array.isArray(arr) || arr.length === 0) return '—';
+                return arr.map((item, i) => {
+                    return `${i+1}. P: ${item.pergunta || '—'}\n   R: ${item.resposta || '—'}`;
+                }).join('\n\n');
+            };
+            const fmtCenarios = (arr) => {
+                if (!arr || !Array.isArray(arr) || arr.length === 0) return '—';
+                return arr.map((item, i) => {
+                    return `${i+1}. ${item.titulo || '—'}\n   Situação: ${item.descricao || '—'}\n   Resposta: ${item.resposta || '—'}`;
+                }).join('\n\n');
+            };
+            const fmtObjecoes = (arr) => {
+                if (!arr || !Array.isArray(arr) || arr.length === 0) return '—';
+                return arr.map((item, i) => {
+                    return `${i+1}. Objeção: ${item.objecao || '—'}\n   Resposta: ${item.resposta || '—'}`;
+                }).join('\n\n');
+            };
+            const fmtGlossario = (arr) => {
+                if (!arr || !Array.isArray(arr) || arr.length === 0) return '—';
+                return arr.map((item, i) => {
+                    return `• ${item.termo || '—'}: ${item.definicao || '—'}`;
+                }).join('\n');
+            };
+            const fmtArquivos = (arr) => {
+                if (!arr || !Array.isArray(arr) || arr.length === 0) return '—';
+                return arr.map((item, i) => {
+                    return `${i+1}. ${item.nome} (${item.tamanho_mb} MB)`;
+                }).join('\n');
+            };
+
+            // Friendly labels for select values
+            const labelMap = {
+                'basico': 'Básico — Usa WhatsApp e planilhas',
+                'intermediario': 'Intermediário — Usa CRM, automações simples',
+                'avancado': 'Avançado — Integrações, APIs, sistemas conectados',
+                'b2b': 'B2B (Empresas)', 'b2c': 'B2C (Consumidor final)', 'ambos': 'B2B e B2C',
+                'seg_sex_8_18': 'Seg a Sex, 8h às 18h', 'seg_sex_9_18': 'Seg a Sex, 9h às 18h',
+                'seg_sab_8_18': 'Seg a Sáb, 8h às 18h', 'seg_sab_9_19': 'Seg a Sáb, 9h às 19h',
+                '24_7': '24 horas / 7 dias', 'outro': 'Personalizado',
+                'demora_atendimento': 'Demora no atendimento', 'perda_leads': 'Perda de leads',
+                'fora_horario': 'Sem atendimento fora do horário', 'falta_padronizacao': 'Falta de padronização',
+                'sobrecarga_equipe': 'Sobrecarga da equipe', 'custo_alto': 'Custo alto de operação',
+                'responder_clientes': 'Responder clientes automaticamente', 'qualificar_leads': 'Qualificar leads',
+                'agendar_reunioes': 'Agendar reuniões', 'suporte_tecnico': 'Suporte técnico',
+                'vender_produtos': 'Vender produtos/serviços', 'coletar_feedback': 'Coletar feedback',
+                'nutrir_leads': 'Nutrir leads', 'pos_venda': 'Pós-venda',
+                'comercial': 'Comercial', 'atendimento': 'Atendimento ao Cliente',
+                'suporte': 'Suporte Técnico', 'marketing': 'Marketing', 'financeiro': 'Financeiro', 'rh': 'RH',
+                'formal': 'Formal e profissional', 'amigavel': 'Amigável e acolhedor',
+                'casual': 'Casual e descontraído', 'tecnico': 'Técnico e especializado',
+                'consultivo': 'Consultivo e orientador', 'vendedor': 'Persuasivo e vendedor',
+                'whatsapp': 'WhatsApp', 'instagram': 'Instagram', 'messenger': 'Messenger',
+                'telegram': 'Telegram', 'webchat': 'Chat no site', 'email': 'E-mail',
+                'google_drive': 'Google Drive', 'dropbox': 'Dropbox', 'sharepoint': 'SharePoint',
+                'servidor_local': 'Servidor local', 'nuvem_propria': 'Nuvem própria',
+                'distribuido': 'Distribuído ao longo do dia',
+                'manha': 'Manhã', 'tarde': 'Tarde', 'noite': 'Noite',
+                'ajudar_time': 'Ajudar o time', 'melhorar_experiencia': 'Melhorar experiência do cliente',
+                'escalar_sem_contratar': 'Escalar sem contratar', 'reduzir_custos': 'Reduzir custos',
+                'aumentar_vendas': 'Aumentar vendas',
+            };
+            const friendly = (v) => {
+                if (v === null || v === undefined || v === '') return '—';
+                if (Array.isArray(v)) return v.map(i => labelMap[i] || i).join(', ');
+                return labelMap[v] || v;
             };
 
             // Header
@@ -1036,93 +1147,65 @@
             doc.text(`Score: ${form.score}/100 (${scoreLabel})  |  Valor Estimado: R$ ${form.valor?.toLocaleString('pt-BR') || '—'}  |  Status: ${form.status || 'novo'}`, 14, y + 4);
             y += 12;
 
-            // Sections
+            // ALL Sections - including every field (filled or not)
             const sections = [
-                { title: 'Informações da Empresa', rows: [
+                { title: '1. Informações da Empresa', rows: [
                     ['Nome da Empresa', fmt(d.nome_empresa)],
                     ['CNPJ', fmt(d.cnpj)],
                     ['Segmento', fmt(d.segmento)],
                     ['Endereço', fmt(d.endereco)],
+                    ['Site', fmt(d.site)],
                     ['Colaboradores', fmt(d.num_colaboradores)],
                     ['Faturamento Mensal', fmt(d.faturamento)],
                     ['Produtos/Serviços', fmt(d.produtos_servicos)],
-                    ['Público-Alvo', fmt(d.publico_alvo)],
+                    ['Público-Alvo', friendly(d.publico_alvo)],
+                    ['História da Empresa', fmt(d.historia_empresa)],
+                    ['Missão, Visão e Valores', fmt(d.missao_visao_valores)],
+                    ['Diferenciais', fmt(d.diferenciais)],
+                    ['Maturidade Digital', friendly(d.maturidade_digital)],
+                    ['Ferramentas Utilizadas', fmt(d.maturidade_ferramentas)],
                 ]},
-                { title: 'Diagnóstico e Objetivos', rows: [
-                    ['Maturidade Digital', fmt(d.maturidade_digital)],
-                    ['Ferramentas Atuais', fmt(d.maturidade_ferramentas)],
-                    ['Dor Principal', fmt(d.dor_principal)],
-                    ['Áreas de Cobertura', fmt(d.areas)],
-                    ['Ações Práticas', fmt(d.acoes_praticas)],
-                    ['Indicadores de Sucesso', fmt(d.indicadores)],
+                { title: '2. Diagnóstico e Objetivos', rows: [
+                    ['Dor Principal', friendly(d.dor_principal)],
+                    ['Outro Problema', fmt(d.dor_outro)],
+                    ['Detalhes do Problema', fmt(d.problema_detalhes)],
+                    ['Áreas de Cobertura', friendly(d.areas)],
+                    ['Ações Práticas do Agente', friendly(d.acoes_praticas)],
+                    ['Outra Ação', fmt(d.acoes_outro)],
+                    ['Indicadores de Sucesso', friendly(d.indicadores)],
+                    ['Expectativas', friendly(d.expectativas)],
+                    ['Processo Atual', fmt(d.processo_atual)],
                 ]},
-                { title: 'Personalidade e Comunicação', rows: [
-                    ['Tom de Voz', fmt(d.tom_voz)],
+                { title: '3. Personalidade e Comunicação', rows: [
+                    ['Tom de Comunicação', friendly(d.tom_comunicacao)],
                     ['Nome do Agente', fmt(d.nome_agente)],
-                    ['Usar Emojis', fmt(d.usar_emojis)],
-                    ['Idioma', fmt(d.idioma)],
-                    ['Multilíngue', fmt(d.multilingue)],
-                    ['Processar Voz', fmt(d.processar_voz)],
+                    ['Usar Emojis', friendly(d.usa_emojis)],
+                    ['Mensagem de Saudação', fmt(d.saudacao)],
+                    ['Msg Quando Não Sabe', fmt(d.msg_nao_sabe)],
+                    ['Msg de Encerramento', fmt(d.msg_encerramento)],
+                    ['Frases Proibidas', fmt(d.frases_proibidas)],
+                    ['Referências de Comunicação', fmt(d.referencias_comunicacao)],
                 ]},
-                { title: 'Regras de Negócio', rows: [
-                    ['Horário Funcionamento', fmt(d.horario_funcionamento)],
+                { title: '4. Regras de Negócio', rows: [
+                    ['Horário de Funcionamento', friendly(d.horario_funcionamento)],
+                    ['Horário Personalizado', fmt(d.horario_funcionamento_outro)],
                     ['Formas de Pagamento', fmt(d.formas_pagamento)],
                     ['Política de Preços', fmt(d.politica_precos)],
-                    ['Garantia/Devolução', fmt(d.garantia_devolucao)],
-                    ['Prazo de Entrega', fmt(d.prazo_entrega)],
-                    ['Restrições', fmt(d.restricoes)],
+                    ['Política de Troca/Devolução', fmt(d.politica_troca)],
+                    ['Política de Garantia', fmt(d.politica_garantia)],
+                    ['Prazos de Entrega', fmt(d.prazos_entrega)],
+                    ['Área de Cobertura/Entrega', fmt(d.area_cobertura)],
+                    ['Regras Invioláveis', fmt(d.regras_inviolaveis)],
+                    ['Informações de Frete', fmt(d.info_frete)],
+                    ['Promoções Atuais', fmt(d.promocoes_atuais)],
                 ]},
-                { title: 'Canais e Integrações', rows: [
-                    ['Canais Desejados', fmt(d.canais)],
-                    ['Integrações', fmt(d.integracoes)],
-                    ['Possui APIs', fmt(d.possui_apis)],
-                    ['Limitações Técnicas', fmt(d.limitacoes_tecnicas)],
-                ]},
-                { title: 'Conteúdo e Dados', rows: [
-                    ['Conteúdo Disponível', fmt(d.conteudo)],
-                    ['Armazenamento Dados', fmt(d.armazenamento_dados)],
-                    ['Formato Dados', fmt(d.formato_dados)],
-                    ['Dados Sensíveis', fmt(d.dados_sensiveis)],
-                    ['Manual de Cultura', fmt(d.manual_cultura)],
-                    ['Manual Produtos/Serviços', fmt(d.manual_produtos)],
-                ]},
-                { title: 'Volume e Operação', rows: [
-                    ['Atendimentos/Dia', fmt(d.atendimentos_dia)],
-                    ['Usuários Simultâneos', fmt(d.usuarios_simultaneos)],
-                    ['Horário de Pico', fmt(d.horario_pico)],
-                    ['Atendentes Humanos', fmt(d.atendentes_humanos)],
-                    ['Escalabilidade', fmt(d.escalabilidade)],
-                ]},
-                { title: 'Segurança e Requisitos', rows: [
-                    ['Requisitos de Segurança', fmt(d.seguranca)],
-                    ['Nível de Customização', fmt(d.nivel_customizacao)],
-                    ['Frequência Relatórios', fmt(d.frequencia_relatorios)],
-                    ['Identidade Visual', fmt(d.identidade_visual)],
-                    ['Autonomia Conteúdo', fmt(d.autonomia_conteudo)],
-                    ['Gerente de Negócio', fmt(d.gerente_negocio)],
-                ]},
-                { title: 'FAQ e Cenários', rows: [
-                    ['Perguntas Frequentes', fmt(d.faq)],
-                    ['Cenários de Uso', fmt(d.cenarios)],
-                    ['Objeções', fmt(d.objecoes)],
-                    ['Glossário', fmt(d.glossario)],
-                ]},
-                { title: 'Contato do Responsável', rows: [
-                    ['Nome', fmt(d.responsavel_nome)],
-                    ['Cargo', fmt(d.responsavel_cargo)],
-                    ['E-mail', fmt(d.responsavel_email)],
-                    ['Telefone/WhatsApp', fmt(d.responsavel_telefone)],
-                ]},
-                { title: 'Observações Finais', rows: [
-                    ['Expectativas', fmt(d.expectativas)],
-                    ['Observações', fmt(d.observacoes)],
-                ]},
+                { title: '5. FAQ e Base de Conhecimento', rows: [] },
             ];
 
+            // Render standard sections first
             sections.forEach(section => {
-                const rows = section.rows.filter(([, v]) => v !== '—');
-                if (rows.length === 0) return;
-
+                // Show ALL rows including empty ones (marked as "—")
+                if (section.rows.length === 0 && section.title === '5. FAQ e Base de Conhecimento') return;
                 if (y > 260) { doc.addPage(); y = 15; }
 
                 // Section header
@@ -1137,7 +1220,7 @@
                 doc.setFont('helvetica', 'normal');
                 doc.setFontSize(9);
 
-                rows.forEach(([label, value]) => {
+                section.rows.forEach(([label, value]) => {
                     if (y > 275) { doc.addPage(); y = 15; }
 
                     doc.setTextColor(100, 100, 120);
@@ -1147,7 +1230,141 @@
                     const maxWidth = pageWidth - 90;
                     const lines = doc.splitTextToSize(String(value), maxWidth);
                     doc.text(lines, 75, y);
-                    y += Math.max(lines.length * 4.5, 5);
+                    y += Math.max(lines.length * 4.5, 6);
+                });
+
+                y += 4;
+            });
+
+            // === Section 5: FAQ (formatted nicely) ===
+            if (y > 260) { doc.addPage(); y = 15; }
+            doc.setFillColor(245, 245, 248);
+            doc.rect(14, y - 1, pageWidth - 28, 8, 'F');
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(232, 119, 46);
+            doc.text('5. FAQ e Base de Conhecimento', 17, y + 4);
+            y += 11;
+
+            // Perguntas Frequentes
+            const faqItems = [
+                { label: 'Perguntas Frequentes', content: fmtFaq(d.faq) },
+                { label: 'Cenários de Uso', content: fmtCenarios(d.cenarios) },
+                { label: 'Objeções Comuns', content: fmtObjecoes(d.objecoes) },
+                { label: 'Glossário', content: fmtGlossario(d.glossario) },
+            ];
+
+            faqItems.forEach(item => {
+                if (y > 270) { doc.addPage(); y = 15; }
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(60, 60, 80);
+                doc.text(item.label + ':', 17, y);
+                y += 5;
+
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(30, 30, 46);
+                const maxWidth = pageWidth - 34;
+                const lines = doc.splitTextToSize(item.content, maxWidth);
+                lines.forEach(line => {
+                    if (y > 280) { doc.addPage(); y = 15; }
+                    doc.text(line, 20, y);
+                    y += 4;
+                });
+                y += 4;
+            });
+
+            // === Remaining Sections ===
+            const remainingSections = [
+                { title: '6. Processos e Escalação', rows: [
+                    ['Processo de Vendas', fmt(d.processo_vendas)],
+                    ['Processo de Suporte', fmt(d.processo_suporte)],
+                    ['Processo de Agendamento', fmt(d.processo_agendamento)],
+                    ['Qualificação de Leads', fmt(d.processo_leads)],
+                    ['Situações de Escalação', friendly(d.escalacao)],
+                    ['Outras Escalações', fmt(d.escalacao_outros)],
+                    ['Canal de Escalação', fmt(d.canal_escalacao)],
+                ]},
+                { title: '7. Canais e Integrações', rows: [
+                    ['Canais Desejados', friendly(d.canais)],
+                    ['Integrações', fmt(d.integracoes)],
+                    ['Possui APIs', friendly(d.possui_apis)],
+                    ['Link Documentação API', fmt(d.api_doc_link)],
+                    ['Business Manager', friendly(d.business_manager)],
+                ]},
+                { title: '8. Conteúdo e Dados', rows: [
+                    ['Conteúdo Disponível', friendly(d.conteudo)],
+                    ['Armazenamento de Dados', friendly(d.armazenamento_dados)],
+                    ['Formato Predominante', friendly(d.formato_dados)],
+                    ['Dados Sensíveis', friendly(d.dados_sensiveis)],
+                    ['Manual de Cultura', friendly(d.manual_cultura)],
+                    ['Manual de Produtos/Serviços', friendly(d.manual_produtos)],
+                    ['Arquivos Enviados', fmtArquivos(d.arquivos_enviados)],
+                ]},
+                { title: '9. Volume e Operação', rows: [
+                    ['Atendimentos/Dia', fmt(d.atendimentos_dia)],
+                    ['Usuários Simultâneos', fmt(d.usuarios_simultaneos)],
+                    ['Horário de Pico', friendly(d.horario_pico)],
+                    ['Atendentes Humanos', fmt(d.atendentes_humanos)],
+                    ['Operação do Agente', fmt(d.operacao)],
+                    ['Personalização', fmt(d.personalizacao)],
+                    ['Tempo de Resposta Esperado', fmt(d.tempo_resposta)],
+                ]},
+                { title: '10. Capacidades Técnicas', rows: [
+                    ['Idioma Principal', fmt(d.linguagem)],
+                    ['Multilíngue', friendly(d.multilingue)],
+                    ['Processar Voz', friendly(d.processar_voz)],
+                    ['Processar Imagens', friendly(d.processar_imagens)],
+                    ['Requisitos de Segurança', friendly(d.seguranca)],
+                    ['Nível de Customização', fmt(d.nivel_customizacao)],
+                    ['Frequência de Relatórios', fmt(d.frequencia_relatorios)],
+                    ['Identidade Visual', friendly(d.identidade_visual)],
+                    ['Autonomia de Conteúdo', friendly(d.autonomia_conteudo)],
+                    ['Gerente de Negócio', friendly(d.gerente_negocio)],
+                    ['Escalabilidade', fmt(d.escalabilidade)],
+                ]},
+                { title: '11. Concorrência e Mercado', rows: [
+                    ['Principais Concorrentes', fmt(d.concorrentes)],
+                    ['Por que Nos Escolher', fmt(d.porque_escolher)],
+                    ['Não Falar sobre Concorrentes', fmt(d.nao_falar_concorrentes)],
+                    ['Cases de Sucesso', fmt(d.cases_sucesso)],
+                ]},
+                { title: '12. Contato do Responsável', rows: [
+                    ['Nome', fmt(d.responsavel_nome)],
+                    ['Cargo', fmt(d.responsavel_cargo)],
+                    ['E-mail', fmt(d.responsavel_email)],
+                    ['Telefone/WhatsApp', fmt(d.responsavel_telefone)],
+                ]},
+                { title: '13. Observações Finais', rows: [
+                    ['Observações', fmt(d.observacoes)],
+                ]},
+            ];
+
+            remainingSections.forEach(section => {
+                if (y > 260) { doc.addPage(); y = 15; }
+
+                doc.setFillColor(245, 245, 248);
+                doc.rect(14, y - 1, pageWidth - 28, 8, 'F');
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(232, 119, 46);
+                doc.text(section.title, 17, y + 4);
+                y += 11;
+
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(9);
+
+                section.rows.forEach(([label, value]) => {
+                    if (y > 275) { doc.addPage(); y = 15; }
+
+                    doc.setTextColor(100, 100, 120);
+                    doc.text(label, 17, y);
+
+                    doc.setTextColor(30, 30, 46);
+                    const maxWidth = pageWidth - 90;
+                    const lines = doc.splitTextToSize(String(value), maxWidth);
+                    doc.text(lines, 75, y);
+                    y += Math.max(lines.length * 4.5, 6);
                 });
 
                 y += 4;

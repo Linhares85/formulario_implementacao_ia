@@ -1689,6 +1689,43 @@
             };
 
             try {
+                // 1. Upload files to Supabase Storage (if any)
+                const empresaSlug = (data.nome_empresa || 'sem-nome').replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+                const timestamp = Date.now();
+                const uploadedFileUrls = [];
+
+                if (uploadedFiles.length > 0) {
+                    for (const file of uploadedFiles) {
+                        const filePath = `${empresaSlug}_${timestamp}/${file.name}`;
+                        const uploadResponse = await fetch(
+                            `${SUPABASE_URL}/storage/v1/object/formulario-ia-anexos/${filePath}`,
+                            {
+                                method: 'POST',
+                                headers: {
+                                    'apikey': SUPABASE_ANON_KEY,
+                                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                                },
+                                body: file
+                            }
+                        );
+                        if (uploadResponse.ok) {
+                            const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/formulario-ia-anexos/${filePath}`;
+                            uploadedFileUrls.push({
+                                nome: file.name,
+                                tipo: file.type,
+                                tamanho_mb: (file.size / 1024 / 1024).toFixed(2),
+                                url: publicUrl
+                            });
+                        } else {
+                            console.warn(`Falha ao enviar arquivo ${file.name}`);
+                        }
+                    }
+                    // Update payload with file URLs
+                    data.arquivos_enviados = uploadedFileUrls;
+                    payload.dados = data;
+                }
+
+                // 2. Submit form data
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/Formularios%20-%20IA`, {
                     method: 'POST',
                     headers: {
