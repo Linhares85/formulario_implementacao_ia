@@ -1040,343 +1040,379 @@
             const doc = new jsPDF('p', 'mm', 'a4');
             const d = form.dados || {};
             const pageWidth = doc.internal.pageSize.getWidth();
+            const margin = 14;
+            const contentStart = 72;
+            const contentWidth = pageWidth - contentStart - margin;
             let y = 15;
 
-            const fmt = v => {
-                if (v === null || v === undefined || v === '') return '—';
-                if (Array.isArray(v)) return v.map(i => typeof i === 'object' ? JSON.stringify(i) : i).join(', ');
-                if (typeof v === 'object') return JSON.stringify(v);
-                if (v === 'sim') return 'Sim';
-                if (v === 'nao') return 'Não';
-                return String(v);
+            // Strip emojis and special chars that break jsPDF encoding
+            const clean = (str) => {
+                if (typeof str !== 'string') return str;
+                return str.replace(/[\u{1F000}-\u{1FFFF}|\u{2600}-\u{27BF}|\u{FE00}-\u{FEFF}|\u{E000}-\u{F8FF}|\u00D8-\u00DF\u00DF]/gu, '')
+                          .replace(/[^\x00-\x7F\u00C0-\u024F\u1E00-\u1EFF]/g, '')
+                          .replace(/\s{2,}/g, ' ')
+                          .trim();
             };
 
-            // Format FAQ/Scenarios/Objections/Glossary nicely
-            const fmtFaq = (arr) => {
-                if (!arr || !Array.isArray(arr) || arr.length === 0) return '—';
-                return arr.map((item, i) => {
-                    return `${i+1}. P: ${item.pergunta || '—'}\n   R: ${item.resposta || '—'}`;
-                }).join('\n\n');
-            };
-            const fmtCenarios = (arr) => {
-                if (!arr || !Array.isArray(arr) || arr.length === 0) return '—';
-                return arr.map((item, i) => {
-                    return `${i+1}. ${item.titulo || '—'}\n   Situação: ${item.descricao || '—'}\n   Resposta: ${item.resposta || '—'}`;
-                }).join('\n\n');
-            };
-            const fmtObjecoes = (arr) => {
-                if (!arr || !Array.isArray(arr) || arr.length === 0) return '—';
-                return arr.map((item, i) => {
-                    return `${i+1}. Objeção: ${item.objecao || '—'}\n   Resposta: ${item.resposta || '—'}`;
-                }).join('\n\n');
-            };
-            const fmtGlossario = (arr) => {
-                if (!arr || !Array.isArray(arr) || arr.length === 0) return '—';
-                return arr.map((item, i) => {
-                    return `• ${item.termo || '—'}: ${item.definicao || '—'}`;
-                }).join('\n');
-            };
-            const fmtArquivos = (arr) => {
-                if (!arr || !Array.isArray(arr) || arr.length === 0) return '—';
-                return arr.map((item, i) => {
-                    return `${i+1}. ${item.nome} (${item.tamanho_mb} MB)`;
-                }).join('\n');
+            const fmt = v => {
+                if (v === null || v === undefined || v === '') return null;
+                if (Array.isArray(v)) {
+                    const mapped = v.map(i => typeof i === 'object' ? JSON.stringify(i) : i).join(', ');
+                    return clean(mapped) || null;
+                }
+                if (typeof v === 'object') return clean(JSON.stringify(v)) || null;
+                if (v === 'sim') return 'Sim';
+                if (v === 'nao') return 'Nao';
+                return clean(String(v)) || null;
             };
 
             // Friendly labels for select values
             const labelMap = {
-                'basico': 'Básico — Usa WhatsApp e planilhas',
-                'intermediario': 'Intermediário — Usa CRM, automações simples',
-                'avancado': 'Avançado — Integrações, APIs, sistemas conectados',
+                'basico': 'Basico - Usa WhatsApp e planilhas',
+                'intermediario': 'Intermediario - Usa CRM, automacoes simples',
+                'avancado': 'Avancado - Integracoes, APIs, sistemas conectados',
                 'b2b': 'B2B (Empresas)', 'b2c': 'B2C (Consumidor final)', 'ambos': 'B2B e B2C',
-                'seg_sex_8_18': 'Seg a Sex, 8h às 18h', 'seg_sex_9_18': 'Seg a Sex, 9h às 18h',
-                'seg_sab_8_18': 'Seg a Sáb, 8h às 18h', 'seg_sab_9_19': 'Seg a Sáb, 9h às 19h',
+                'seg_sex_8_18': 'Seg a Sex, 8h as 18h', 'seg_sex_9_18': 'Seg a Sex, 9h as 18h',
+                'seg_sab_8_18': 'Seg a Sab, 8h as 18h', 'seg_sab_9_19': 'Seg a Sab, 9h as 19h',
                 '24_7': '24 horas / 7 dias', 'outro': 'Personalizado',
                 'demora_atendimento': 'Demora no atendimento', 'perda_leads': 'Perda de leads',
-                'fora_horario': 'Sem atendimento fora do horário', 'falta_padronizacao': 'Falta de padronização',
-                'sobrecarga_equipe': 'Sobrecarga da equipe', 'custo_alto': 'Custo alto de operação',
+                'fora_horario': 'Sem atendimento fora do horario', 'falta_padronizacao': 'Falta de padronizacao',
+                'sobrecarga_equipe': 'Sobrecarga da equipe', 'custo_alto': 'Custo alto de operacao',
                 'responder_clientes': 'Responder clientes automaticamente', 'qualificar_leads': 'Qualificar leads',
-                'agendar_reunioes': 'Agendar reuniões', 'suporte_tecnico': 'Suporte técnico',
-                'vender_produtos': 'Vender produtos/serviços', 'coletar_feedback': 'Coletar feedback',
-                'nutrir_leads': 'Nutrir leads', 'pos_venda': 'Pós-venda',
+                'agendar_reunioes': 'Agendar reunioes', 'suporte_tecnico': 'Suporte tecnico',
+                'vender_produtos': 'Vender produtos/servicos', 'coletar_feedback': 'Coletar feedback',
+                'nutrir_leads': 'Nutrir leads', 'pos_venda': 'Pos-venda',
                 'comercial': 'Comercial', 'atendimento': 'Atendimento ao Cliente',
-                'suporte': 'Suporte Técnico', 'marketing': 'Marketing', 'financeiro': 'Financeiro', 'rh': 'RH',
-                'formal': 'Formal e profissional', 'amigavel': 'Amigável e acolhedor',
-                'casual': 'Casual e descontraído', 'tecnico': 'Técnico e especializado',
+                'suporte': 'Suporte Tecnico', 'marketing': 'Marketing', 'financeiro': 'Financeiro', 'rh': 'RH',
+                'formal': 'Formal e profissional', 'amigavel': 'Amigavel e acolhedor',
+                'casual': 'Casual e descontraido', 'tecnico': 'Tecnico e especializado',
                 'consultivo': 'Consultivo e orientador', 'vendedor': 'Persuasivo e vendedor',
                 'whatsapp': 'WhatsApp', 'instagram': 'Instagram', 'messenger': 'Messenger',
                 'telegram': 'Telegram', 'webchat': 'Chat no site', 'email': 'E-mail',
                 'google_drive': 'Google Drive', 'dropbox': 'Dropbox', 'sharepoint': 'SharePoint',
-                'servidor_local': 'Servidor local', 'nuvem_propria': 'Nuvem própria',
-                'distribuido': 'Distribuído ao longo do dia',
-                'manha': 'Manhã', 'tarde': 'Tarde', 'noite': 'Noite',
-                'ajudar_time': 'Ajudar o time', 'melhorar_experiencia': 'Melhorar experiência do cliente',
+                'google_docs': 'Google Docs', 'pdf': 'PDF', 'excel': 'Excel',
+                'servidor_local': 'Servidor local', 'nuvem_propria': 'Nuvem propria',
+                'distribuido': 'Distribuido ao longo do dia',
+                'manha': 'Manha', 'tarde': 'Tarde', 'noite': 'Noite',
+                'ajudar_time': 'Ajudar o time', 'melhorar_experiencia': 'Melhorar experiencia do cliente',
                 'escalar_sem_contratar': 'Escalar sem contratar', 'reduzir_custos': 'Reduzir custos',
                 'aumentar_vendas': 'Aumentar vendas',
+                'rapido': 'Rapido (ate 5s)', 'moderado': 'Moderado', 'lento': 'Sem pressa',
+                'reclamacao': 'Reclamacao', 'insatisfeito': 'Cliente insatisfeito',
+                'venda_grande': 'Venda de grande valor',
+                'faq': 'FAQ', 'manuais': 'Manuais', 'scripts': 'Scripts', 'artigos': 'Artigos',
+                'videos': 'Videos', 'planilhas': 'Planilhas',
+                'pt-br': 'Portugues (BR)', 'en': 'Ingles', 'es': 'Espanhol',
+                'sim': 'Sim', 'nao': 'Nao',
+                'criptografia': 'Criptografia', 'audit_logs': 'Logs de auditoria',
+                'lgpd': 'LGPD', 'backup': 'Backup automatico',
             };
             const friendly = (v) => {
-                if (v === null || v === undefined || v === '') return '—';
-                if (Array.isArray(v)) return v.map(i => labelMap[i] || i).join(', ');
-                return labelMap[v] || v;
+                if (v === null || v === undefined || v === '') return null;
+                if (Array.isArray(v)) {
+                    const result = v.map(i => labelMap[i] || i).join(', ');
+                    return clean(result) || null;
+                }
+                return clean(labelMap[v] || String(v)) || null;
             };
 
-            // Header
-            doc.setFillColor(232, 119, 46);
-            doc.rect(0, 0, pageWidth, 28, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(18);
-            doc.setFont('helvetica', 'bold');
-            doc.text('Agência DPX', 14, 13);
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
-            doc.text('Formulário de Implementação de Agente de IA', 14, 20);
-            doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, pageWidth - 14, 20, { align: 'right' });
-            y = 35;
+            // === Check page break ===
+            const checkPage = (needed) => {
+                if (y + needed > 282) { doc.addPage(); y = 15; }
+            };
 
-            // Empresa title
-            doc.setTextColor(30, 30, 46);
-            doc.setFontSize(16);
-            doc.setFont('helvetica', 'bold');
-            doc.text(form.nome_empresa || 'Sem nome', 14, y);
-            y += 4;
-
-            const scoreLabel = form.score <= 30 ? 'Simples' : form.score <= 60 ? 'Moderado' : form.score <= 80 ? 'Complexo' : 'Enterprise';
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
-            doc.setTextColor(100, 100, 120);
-            doc.text(`Score: ${form.score}/100 (${scoreLabel})  |  Valor Estimado: R$ ${form.valor?.toLocaleString('pt-BR') || '—'}  |  Status: ${form.status || 'novo'}`, 14, y + 4);
-            y += 12;
-
-            // ALL Sections - including every field (filled or not)
-            const sections = [
-                { title: '1. Informações da Empresa', rows: [
-                    ['Nome da Empresa', fmt(d.nome_empresa)],
-                    ['CNPJ', fmt(d.cnpj)],
-                    ['Segmento', fmt(d.segmento)],
-                    ['Endereço', fmt(d.endereco)],
-                    ['Site', fmt(d.site)],
-                    ['Colaboradores', fmt(d.num_colaboradores)],
-                    ['Faturamento Mensal', fmt(d.faturamento)],
-                    ['Produtos/Serviços', fmt(d.produtos_servicos)],
-                    ['Público-Alvo', friendly(d.publico_alvo)],
-                    ['História da Empresa', fmt(d.historia_empresa)],
-                    ['Missão, Visão e Valores', fmt(d.missao_visao_valores)],
-                    ['Diferenciais', fmt(d.diferenciais)],
-                    ['Maturidade Digital', friendly(d.maturidade_digital)],
-                    ['Ferramentas Utilizadas', fmt(d.maturidade_ferramentas)],
-                ]},
-                { title: '2. Diagnóstico e Objetivos', rows: [
-                    ['Dor Principal', friendly(d.dor_principal)],
-                    ['Outro Problema', fmt(d.dor_outro)],
-                    ['Detalhes do Problema', fmt(d.problema_detalhes)],
-                    ['Áreas de Cobertura', friendly(d.areas)],
-                    ['Ações Práticas do Agente', friendly(d.acoes_praticas)],
-                    ['Outra Ação', fmt(d.acoes_outro)],
-                    ['Indicadores de Sucesso', friendly(d.indicadores)],
-                    ['Expectativas', friendly(d.expectativas)],
-                    ['Processo Atual', fmt(d.processo_atual)],
-                ]},
-                { title: '3. Personalidade e Comunicação', rows: [
-                    ['Tom de Comunicação', friendly(d.tom_comunicacao)],
-                    ['Nome do Agente', fmt(d.nome_agente)],
-                    ['Usar Emojis', friendly(d.usa_emojis)],
-                    ['Mensagem de Saudação', fmt(d.saudacao)],
-                    ['Msg Quando Não Sabe', fmt(d.msg_nao_sabe)],
-                    ['Msg de Encerramento', fmt(d.msg_encerramento)],
-                    ['Frases Proibidas', fmt(d.frases_proibidas)],
-                    ['Referências de Comunicação', fmt(d.referencias_comunicacao)],
-                ]},
-                { title: '4. Regras de Negócio', rows: [
-                    ['Horário de Funcionamento', friendly(d.horario_funcionamento)],
-                    ['Horário Personalizado', fmt(d.horario_funcionamento_outro)],
-                    ['Formas de Pagamento', fmt(d.formas_pagamento)],
-                    ['Política de Preços', fmt(d.politica_precos)],
-                    ['Política de Troca/Devolução', fmt(d.politica_troca)],
-                    ['Política de Garantia', fmt(d.politica_garantia)],
-                    ['Prazos de Entrega', fmt(d.prazos_entrega)],
-                    ['Área de Cobertura/Entrega', fmt(d.area_cobertura)],
-                    ['Regras Invioláveis', fmt(d.regras_inviolaveis)],
-                    ['Informações de Frete', fmt(d.info_frete)],
-                    ['Promoções Atuais', fmt(d.promocoes_atuais)],
-                ]},
-                { title: '5. FAQ e Base de Conhecimento', rows: [] },
-            ];
-
-            // Render standard sections first
-            sections.forEach(section => {
-                // Show ALL rows including empty ones (marked as "—")
-                if (section.rows.length === 0 && section.title === '5. FAQ e Base de Conhecimento') return;
-                if (y > 260) { doc.addPage(); y = 15; }
-
-                // Section header
-                doc.setFillColor(245, 245, 248);
-                doc.rect(14, y - 1, pageWidth - 28, 8, 'F');
+            // === Draw section header ===
+            const drawSectionHeader = (title) => {
+                checkPage(14);
+                doc.setFillColor(232, 119, 46);
+                doc.rect(margin, y, pageWidth - margin * 2, 9, 'F');
                 doc.setFontSize(10);
                 doc.setFont('helvetica', 'bold');
-                doc.setTextColor(232, 119, 46);
-                doc.text(section.title, 17, y + 4);
-                y += 11;
+                doc.setTextColor(255, 255, 255);
+                doc.text(title, margin + 4, y + 6.5);
+                y += 13;
+            };
 
-                doc.setFont('helvetica', 'normal');
-                doc.setFontSize(9);
-
-                section.rows.forEach(([label, value]) => {
-                    if (y > 275) { doc.addPage(); y = 15; }
-
-                    doc.setTextColor(100, 100, 120);
-                    doc.text(label, 17, y);
-
-                    doc.setTextColor(30, 30, 46);
-                    const maxWidth = pageWidth - 90;
-                    const lines = doc.splitTextToSize(String(value), maxWidth);
-                    doc.text(lines, 75, y);
-                    y += Math.max(lines.length * 4.5, 6);
-                });
-
-                y += 4;
-            });
-
-            // === Section 5: FAQ (formatted nicely) ===
-            if (y > 260) { doc.addPage(); y = 15; }
-            doc.setFillColor(245, 245, 248);
-            doc.rect(14, y - 1, pageWidth - 28, 8, 'F');
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(232, 119, 46);
-            doc.text('5. FAQ e Base de Conhecimento', 17, y + 4);
-            y += 11;
-
-            // Perguntas Frequentes
-            const faqItems = [
-                { label: 'Perguntas Frequentes', content: fmtFaq(d.faq) },
-                { label: 'Cenários de Uso', content: fmtCenarios(d.cenarios) },
-                { label: 'Objeções Comuns', content: fmtObjecoes(d.objecoes) },
-                { label: 'Glossário', content: fmtGlossario(d.glossario) },
-            ];
-
-            faqItems.forEach(item => {
-                if (y > 270) { doc.addPage(); y = 15; }
-                doc.setFontSize(9);
+            // === Draw label-value row ===
+            const drawRow = (label, value, isAlt) => {
+                if (value === null) return; // skip empty
+                checkPage(8);
+                // Alternating background
+                if (isAlt) {
+                    doc.setFillColor(248, 248, 252);
+                    doc.rect(margin, y - 3.5, pageWidth - margin * 2, 0, 'F');
+                }
+                doc.setFontSize(8.5);
                 doc.setFont('helvetica', 'bold');
-                doc.setTextColor(60, 60, 80);
-                doc.text(item.label + ':', 17, y);
-                y += 5;
+                doc.setTextColor(90, 90, 110);
+                doc.text(label, margin + 3, y);
 
                 doc.setFont('helvetica', 'normal');
                 doc.setTextColor(30, 30, 46);
-                const maxWidth = pageWidth - 34;
-                const lines = doc.splitTextToSize(item.content, maxWidth);
-                lines.forEach(line => {
-                    if (y > 280) { doc.addPage(); y = 15; }
-                    doc.text(line, 20, y);
-                    y += 4;
+                const lines = doc.splitTextToSize(String(value), contentWidth);
+                lines.forEach((line, li) => {
+                    if (li > 0) checkPage(4.5);
+                    doc.text(line, contentStart, y);
+                    if (li < lines.length - 1) y += 4.5;
                 });
-                y += 4;
-            });
+                y += 6;
+                // Draw subtle separator line
+                doc.setDrawColor(230, 230, 235);
+                doc.setLineWidth(0.2);
+                doc.line(margin + 2, y - 2.5, pageWidth - margin - 2, y - 2.5);
+            };
+
+            // === Draw rows for a section ===
+            const drawSection = (title, rows) => {
+                const filledRows = rows.filter(([, v]) => v !== null);
+                if (filledRows.length === 0) return;
+                drawSectionHeader(title);
+                filledRows.forEach(([label, value], i) => drawRow(label, value, i % 2 === 0));
+                y += 3;
+            };
+
+            // === HEADER ===
+            doc.setFillColor(12, 12, 20);
+            doc.rect(0, 0, pageWidth, 32, 'F');
+            doc.setFillColor(232, 119, 46);
+            doc.rect(0, 30, pageWidth, 2, 'F');
+            doc.setTextColor(232, 119, 46);
+            doc.setFontSize(20);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Agencia DPX', margin, 14);
+            doc.setTextColor(200, 200, 210);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.text('Formulario de Implementacao de Agente de IA', margin, 22);
+            doc.setTextColor(255, 255, 255);
+            doc.text('Gerado em: ' + new Date().toLocaleDateString('pt-BR'), pageWidth - margin, 22, { align: 'right' });
+            y = 40;
+
+            // === COMPANY NAME + SCORE BAR ===
+            doc.setTextColor(30, 30, 46);
+            doc.setFontSize(18);
+            doc.setFont('helvetica', 'bold');
+            doc.text(clean(form.nome_empresa) || 'Sem nome', margin, y);
+            y += 7;
+
+            const scoreLabel = form.score <= 30 ? 'Simples' : form.score <= 60 ? 'Moderado' : form.score <= 80 ? 'Complexo' : 'Enterprise';
+            const scoreColor = form.score <= 30 ? [52, 211, 153] : form.score <= 60 ? [251, 191, 36] : form.score <= 80 ? [249, 115, 22] : [239, 68, 68];
+            // Score bar background
+            doc.setFillColor(235, 235, 240);
+            doc.roundedRect(margin, y, 60, 4, 2, 2, 'F');
+            // Score bar fill
+            doc.setFillColor(...scoreColor);
+            doc.roundedRect(margin, y, Math.max(60 * form.score / 100, 4), 4, 2, 2, 'F');
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(80, 80, 100);
+            doc.text(form.score + '/100 (' + scoreLabel + ')', margin + 64, y + 3.5);
+            doc.text('Valor: R$ ' + (form.valor?.toLocaleString('pt-BR') || '---'), pageWidth - margin, y + 3.5, { align: 'right' });
+            y += 12;
+
+            // === SECTIONS ===
+            drawSection('1. Informacoes da Empresa', [
+                ['Nome da Empresa', fmt(d.nome_empresa)],
+                ['CNPJ', fmt(d.cnpj)],
+                ['Segmento', fmt(d.segmento)],
+                ['Endereco', fmt(d.endereco)],
+                ['Site', fmt(d.site)],
+                ['Colaboradores', fmt(d.num_colaboradores)],
+                ['Faturamento Mensal', fmt(d.faturamento)],
+                ['Produtos/Servicos', fmt(d.produtos_servicos)],
+                ['Publico-Alvo', friendly(d.publico_alvo)],
+                ['Historia da Empresa', fmt(d.historia_empresa)],
+                ['Missao, Visao e Valores', fmt(d.missao_visao_valores)],
+                ['Diferenciais', fmt(d.diferenciais)],
+                ['Maturidade Digital', friendly(d.maturidade_digital)],
+                ['Ferramentas Utilizadas', fmt(d.maturidade_ferramentas)],
+            ]);
+
+            drawSection('2. Diagnostico e Objetivos', [
+                ['Dor Principal', friendly(d.dor_principal)],
+                ['Detalhes do Problema', fmt(d.problema_detalhes)],
+                ['Areas de Cobertura', friendly(d.areas)],
+                ['Acoes Praticas do Agente', friendly(d.acoes_praticas)],
+                ['Indicadores de Sucesso', friendly(d.indicadores)],
+                ['Expectativas', friendly(d.expectativas)],
+                ['Processo Atual', fmt(d.processo_atual)],
+            ]);
+
+            drawSection('3. Personalidade e Comunicacao', [
+                ['Tom de Comunicacao', friendly(d.tom_comunicacao)],
+                ['Nome do Agente', fmt(d.nome_agente)],
+                ['Usar Emojis', friendly(d.usa_emojis)],
+                ['Mensagem de Saudacao', fmt(d.saudacao)],
+                ['Msg Quando Nao Sabe', fmt(d.msg_nao_sabe)],
+                ['Msg de Encerramento', fmt(d.msg_encerramento)],
+                ['Frases Proibidas', fmt(d.frases_proibidas)],
+                ['Referencias de Comunicacao', fmt(d.referencias_comunicacao)],
+            ]);
+
+            drawSection('4. Regras de Negocio', [
+                ['Horario de Funcionamento', friendly(d.horario_funcionamento)],
+                ['Formas de Pagamento', fmt(d.formas_pagamento)],
+                ['Politica de Precos', fmt(d.politica_precos)],
+                ['Politica de Troca/Devolucao', fmt(d.politica_troca)],
+                ['Politica de Garantia', fmt(d.politica_garantia)],
+                ['Prazos de Entrega', fmt(d.prazos_entrega)],
+                ['Area de Cobertura', fmt(d.area_cobertura)],
+                ['Regras Inviolaveis', fmt(d.regras_inviolaveis)],
+                ['Informacoes de Frete', fmt(d.info_frete)],
+                ['Promocoes Atuais', fmt(d.promocoes_atuais)],
+            ]);
+
+            // === Section 5: FAQ - Special formatted ===
+            const hasFaq = d.faq && Array.isArray(d.faq) && d.faq.length > 0;
+            const hasCenarios = d.cenarios && Array.isArray(d.cenarios) && d.cenarios.length > 0;
+            const hasObjecoes = d.objecoes && Array.isArray(d.objecoes) && d.objecoes.length > 0;
+            const hasGlossario = d.glossario && Array.isArray(d.glossario) && d.glossario.length > 0;
+
+            if (hasFaq || hasCenarios || hasObjecoes || hasGlossario) {
+                drawSectionHeader('5. FAQ e Base de Conhecimento');
+
+                const drawFaqBlock = (title, items, formatFn) => {
+                    if (!items || items.length === 0) return;
+                    checkPage(10);
+                    // Sub-header
+                    doc.setFillColor(242, 242, 248);
+                    doc.rect(margin + 2, y - 2, pageWidth - margin * 2 - 4, 7, 'F');
+                    doc.setFontSize(9);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(80, 80, 100);
+                    doc.text(title, margin + 5, y + 2.5);
+                    y += 9;
+
+                    items.forEach((item, idx) => {
+                        checkPage(12);
+                        const lines = formatFn(item, idx);
+                        doc.setFontSize(8.5);
+                        lines.forEach(({text, bold}) => {
+                            checkPage(5);
+                            doc.setFont('helvetica', bold ? 'bold' : 'normal');
+                            doc.setTextColor(bold ? 60 : 30, bold ? 60 : 30, bold ? 80 : 46);
+                            const wrapped = doc.splitTextToSize(clean(text), pageWidth - margin * 2 - 12);
+                            wrapped.forEach(wl => {
+                                checkPage(4.5);
+                                doc.text(wl, margin + 6, y);
+                                y += 4.2;
+                            });
+                        });
+                        y += 3;
+                        // Separator between items
+                        if (idx < items.length - 1) {
+                            doc.setDrawColor(220, 220, 228);
+                            doc.setLineWidth(0.15);
+                            doc.line(margin + 6, y - 1.5, pageWidth - margin - 6, y - 1.5);
+                        }
+                    });
+                    y += 3;
+                };
+
+                drawFaqBlock('Perguntas Frequentes', d.faq, (item, i) => [
+                    { text: (i+1) + '. Pergunta: ' + (item.pergunta || ''), bold: true },
+                    { text: 'Resposta: ' + (item.resposta || ''), bold: false },
+                ]);
+
+                drawFaqBlock('Cenarios de Uso', d.cenarios, (item, i) => [
+                    { text: (i+1) + '. ' + (item.titulo || ''), bold: true },
+                    { text: 'Situacao: ' + (item.descricao || ''), bold: false },
+                    { text: 'Resposta: ' + (item.resposta || ''), bold: false },
+                ]);
+
+                drawFaqBlock('Objecoes Comuns', d.objecoes, (item, i) => [
+                    { text: (i+1) + '. Objecao: ' + (item.objecao || ''), bold: true },
+                    { text: 'Resposta: ' + (item.resposta || ''), bold: false },
+                ]);
+
+                drawFaqBlock('Glossario', d.glossario, (item) => [
+                    { text: item.termo + ': ' + (item.definicao || ''), bold: false },
+                ]);
+            }
 
             // === Remaining Sections ===
-            const remainingSections = [
-                { title: '6. Processos e Escalação', rows: [
-                    ['Processo de Vendas', fmt(d.processo_vendas)],
-                    ['Processo de Suporte', fmt(d.processo_suporte)],
-                    ['Processo de Agendamento', fmt(d.processo_agendamento)],
-                    ['Qualificação de Leads', fmt(d.processo_leads)],
-                    ['Situações de Escalação', friendly(d.escalacao)],
-                    ['Outras Escalações', fmt(d.escalacao_outros)],
-                    ['Canal de Escalação', fmt(d.canal_escalacao)],
-                ]},
-                { title: '7. Canais e Integrações', rows: [
-                    ['Canais Desejados', friendly(d.canais)],
-                    ['Integrações', fmt(d.integracoes)],
-                    ['Possui APIs', friendly(d.possui_apis)],
-                    ['Link Documentação API', fmt(d.api_doc_link)],
-                    ['Business Manager', friendly(d.business_manager)],
-                ]},
-                { title: '8. Conteúdo e Dados', rows: [
-                    ['Conteúdo Disponível', friendly(d.conteudo)],
-                    ['Armazenamento de Dados', friendly(d.armazenamento_dados)],
-                    ['Formato Predominante', friendly(d.formato_dados)],
-                    ['Dados Sensíveis', friendly(d.dados_sensiveis)],
-                    ['Manual de Cultura', friendly(d.manual_cultura)],
-                    ['Manual de Produtos/Serviços', friendly(d.manual_produtos)],
-                    ['Arquivos Enviados', fmtArquivos(d.arquivos_enviados)],
-                ]},
-                { title: '9. Volume e Operação', rows: [
-                    ['Atendimentos/Dia', fmt(d.atendimentos_dia)],
-                    ['Usuários Simultâneos', fmt(d.usuarios_simultaneos)],
-                    ['Horário de Pico', friendly(d.horario_pico)],
-                    ['Atendentes Humanos', fmt(d.atendentes_humanos)],
-                    ['Operação do Agente', fmt(d.operacao)],
-                    ['Personalização', fmt(d.personalizacao)],
-                    ['Tempo de Resposta Esperado', fmt(d.tempo_resposta)],
-                ]},
-                { title: '10. Capacidades Técnicas', rows: [
-                    ['Idioma Principal', fmt(d.linguagem)],
-                    ['Multilíngue', friendly(d.multilingue)],
-                    ['Processar Voz', friendly(d.processar_voz)],
-                    ['Processar Imagens', friendly(d.processar_imagens)],
-                    ['Requisitos de Segurança', friendly(d.seguranca)],
-                    ['Nível de Customização', fmt(d.nivel_customizacao)],
-                    ['Frequência de Relatórios', fmt(d.frequencia_relatorios)],
-                    ['Identidade Visual', friendly(d.identidade_visual)],
-                    ['Autonomia de Conteúdo', friendly(d.autonomia_conteudo)],
-                    ['Gerente de Negócio', friendly(d.gerente_negocio)],
-                    ['Escalabilidade', fmt(d.escalabilidade)],
-                ]},
-                { title: '11. Concorrência e Mercado', rows: [
-                    ['Principais Concorrentes', fmt(d.concorrentes)],
-                    ['Por que Nos Escolher', fmt(d.porque_escolher)],
-                    ['Não Falar sobre Concorrentes', fmt(d.nao_falar_concorrentes)],
-                    ['Cases de Sucesso', fmt(d.cases_sucesso)],
-                ]},
-                { title: '12. Contato do Responsável', rows: [
-                    ['Nome', fmt(d.responsavel_nome)],
-                    ['Cargo', fmt(d.responsavel_cargo)],
-                    ['E-mail', fmt(d.responsavel_email)],
-                    ['Telefone/WhatsApp', fmt(d.responsavel_telefone)],
-                ]},
-                { title: '13. Observações Finais', rows: [
-                    ['Observações', fmt(d.observacoes)],
-                ]},
-            ];
+            drawSection('6. Processos e Escalacao', [
+                ['Processo de Vendas', fmt(d.processo_vendas)],
+                ['Processo de Suporte', fmt(d.processo_suporte)],
+                ['Processo de Agendamento', fmt(d.processo_agendamento)],
+                ['Qualificacao de Leads', fmt(d.processo_leads)],
+                ['Situacoes de Escalacao', friendly(d.escalacao)],
+                ['Outras Escalacoes', fmt(d.escalacao_outros)],
+                ['Canal de Escalacao', fmt(d.canal_escalacao)],
+            ]);
 
-            remainingSections.forEach(section => {
-                if (y > 260) { doc.addPage(); y = 15; }
+            drawSection('7. Canais e Integracoes', [
+                ['Canais Desejados', friendly(d.canais)],
+                ['Integracoes', fmt(d.integracoes)],
+                ['Possui APIs', friendly(d.possui_apis)],
+                ['Link Documentacao API', fmt(d.api_doc_link)],
+                ['Business Manager', friendly(d.business_manager)],
+            ]);
 
-                doc.setFillColor(245, 245, 248);
-                doc.rect(14, y - 1, pageWidth - 28, 8, 'F');
-                doc.setFontSize(10);
-                doc.setFont('helvetica', 'bold');
-                doc.setTextColor(232, 119, 46);
-                doc.text(section.title, 17, y + 4);
-                y += 11;
+            const fmtArquivos = (arr) => {
+                if (!arr || !Array.isArray(arr) || arr.length === 0) return null;
+                return arr.map((item, i) => (i+1) + '. ' + item.nome + ' (' + item.tamanho_mb + ' MB)').join(', ');
+            };
 
-                doc.setFont('helvetica', 'normal');
-                doc.setFontSize(9);
+            drawSection('8. Conteudo e Dados', [
+                ['Conteudo Disponivel', friendly(d.conteudo)],
+                ['Armazenamento de Dados', friendly(d.armazenamento_dados)],
+                ['Formato Predominante', friendly(d.formato_dados)],
+                ['Dados Sensiveis', friendly(d.dados_sensiveis)],
+                ['Manual de Cultura', friendly(d.manual_cultura)],
+                ['Manual de Produtos/Servicos', friendly(d.manual_produtos)],
+                ['Arquivos Enviados', fmtArquivos(d.arquivos_enviados)],
+            ]);
 
-                section.rows.forEach(([label, value]) => {
-                    if (y > 275) { doc.addPage(); y = 15; }
+            drawSection('9. Volume e Operacao', [
+                ['Atendimentos/Dia', fmt(d.atendimentos_dia)],
+                ['Usuarios Simultaneos', fmt(d.usuarios_simultaneos)],
+                ['Horario de Pico', friendly(d.horario_pico)],
+                ['Atendentes Humanos', fmt(d.atendentes_humanos)],
+                ['Operacao do Agente', friendly(d.operacao)],
+                ['Personalizacao', friendly(d.personalizacao)],
+                ['Tempo de Resposta', friendly(d.tempo_resposta)],
+            ]);
 
-                    doc.setTextColor(100, 100, 120);
-                    doc.text(label, 17, y);
+            drawSection('10. Capacidades Tecnicas', [
+                ['Idioma Principal', friendly(d.linguagem)],
+                ['Multilingue', friendly(d.multilingue)],
+                ['Processar Voz', friendly(d.processar_voz)],
+                ['Processar Imagens', friendly(d.processar_imagens)],
+                ['Requisitos de Seguranca', friendly(d.seguranca)],
+                ['Escalabilidade', fmt(d.escalabilidade)],
+            ]);
 
-                    doc.setTextColor(30, 30, 46);
-                    const maxWidth = pageWidth - 90;
-                    const lines = doc.splitTextToSize(String(value), maxWidth);
-                    doc.text(lines, 75, y);
-                    y += Math.max(lines.length * 4.5, 6);
-                });
+            drawSection('11. Concorrencia e Mercado', [
+                ['Principais Concorrentes', fmt(d.concorrentes)],
+                ['Por que Nos Escolher', fmt(d.porque_escolher)],
+                ['Nao Falar sobre Concorrentes', fmt(d.nao_falar_concorrentes)],
+                ['Cases de Sucesso', fmt(d.cases_sucesso)],
+            ]);
 
-                y += 4;
-            });
+            drawSection('12. Contato do Responsavel', [
+                ['Nome', fmt(d.responsavel_nome)],
+                ['Cargo', fmt(d.responsavel_cargo)],
+                ['E-mail', fmt(d.responsavel_email)],
+                ['Telefone/WhatsApp', fmt(d.responsavel_telefone)],
+            ]);
 
-            // Footer
+            drawSection('13. Observacoes Finais', [
+                ['Observacoes', fmt(d.observacoes)],
+            ]);
+
+            // === FOOTER on all pages ===
             const pageCount = doc.internal.getNumberOfPages();
             for (let i = 1; i <= pageCount; i++) {
                 doc.setPage(i);
-                doc.setFontSize(8);
-                doc.setTextColor(150, 150, 165);
-                doc.text(`Agência DPX — Implementação de IA | Página ${i} de ${pageCount}`, pageWidth / 2, 290, { align: 'center' });
+                // Footer line
+                doc.setDrawColor(232, 119, 46);
+                doc.setLineWidth(0.5);
+                doc.line(margin, 285, pageWidth - margin, 285);
+                doc.setFontSize(7.5);
+                doc.setTextColor(140, 140, 155);
+                doc.text('Agencia DPX - Implementacao de IA', margin, 290);
+                doc.text('Pagina ' + i + ' de ' + pageCount, pageWidth - margin, 290, { align: 'right' });
             }
 
             return doc;
