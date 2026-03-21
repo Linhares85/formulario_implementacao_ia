@@ -76,10 +76,29 @@
 </head>
 <body class="min-h-screen flex items-center justify-center font-sans text-white p-4 relative overflow-hidden">
 
-    <!-- Video Background -->
-    <video autoplay muted loop playsinline class="fixed inset-0 w-full h-full object-cover" style="opacity: 0.055; z-index: 0;">
+    <!-- Video Background with fade loop -->
+    <video id="bgVideo" autoplay muted playsinline class="fixed inset-0 w-full h-full object-cover" style="opacity: 0; z-index: 0; transition: opacity 1s ease;">
         <source src="bg01.webm" type="video/webm">
     </video>
+    <script>
+        (function() {
+            const vid = document.getElementById('bgVideo');
+            const maxOpacity = 0.055;
+            vid.addEventListener('play', () => { vid.style.opacity = maxOpacity; });
+            vid.addEventListener('timeupdate', () => {
+                if (vid.duration && vid.currentTime >= vid.duration - 1) {
+                    vid.style.opacity = '0';
+                }
+            });
+            vid.addEventListener('ended', () => {
+                setTimeout(() => {
+                    vid.currentTime = 0;
+                    vid.play();
+                    vid.style.opacity = maxOpacity;
+                }, 1000);
+            });
+        })();
+    </script>
 
     <div class="max-w-4xl w-full text-center relative" style="z-index: 1;">
 
